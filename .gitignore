@@ -1,0 +1,3 @@
+/deps/*
+!/deps/*.wrap
+!/deps/packagefiles/
