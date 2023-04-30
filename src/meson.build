@@ -36,7 +36,7 @@ extendedWarnings = [
 	'-Wdangling-else',
 	'-Wsign-conversion',
 	'-Wfloat-conversion',
-	'-Wpacked',
+#	'-Wpacked',
 #	'-Wpadded',
 	'-Wredundant-decls',
 	'-Winline',
@@ -62,6 +62,8 @@ substrate = subproject(
 	'substrate_dep'
 )
 
+libusb = dependency('libusb-1.0', version: '>=1.0.21', native: true)
+
 bmpflashSrc = [
 	'bmpflash.cxx'
 ]
@@ -70,6 +72,7 @@ bmpflash = executable(
 	'bmpflash',
 	bmpflashSrc,
 	cpp_args: ['-D_FORTIFY_SOURCE=2'],
-	dependencies: [substrate],
+	include_directories: [include_directories('include')],
+	dependencies: [substrate, libusb],
 	gnu_symbol_visibility: 'inlineshidden'
 )
