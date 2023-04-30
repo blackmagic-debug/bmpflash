@@ -8,9 +8,11 @@
 #include <utility>
 #include <libusb.h>
 #include <substrate/console>
+#include "unicode.hxx"
 
 using namespace std::literals::string_view_literals;
 using substrate::console;
+using substrate::asHex_t;
 
 enum class endpointDir_t : uint8_t
 {
@@ -183,6 +185,34 @@ public:
 		return !result;
 	}
 
+	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+	[[nodiscard]] std::string readStringDescriptor(const uint8_t stringIndex,
+		const uint16_t languageID = 0x0409U) const noexcept
+	{
+		// Guard on trying to read string index 0 as doing so is USB UB
+		if (!stringIndex)
+			return {};
+		// Set up a 512 byte array to read the string into, and try to read it
+		std::array<uint8_t, 512> stringData{};
+		const auto result
+		{
+			libusb_get_string_descriptor(device, stringIndex, languageID, stringData.data(), stringData.size())
+		};
+		// Check for USB errors and report them
+		if (result < 0)
+		{
+			console.error("Failed to read string descriptor "sv, stringIndex, " for language ",
+				asHex_t<4, '0'>(languageID), ", reason:"sv, libusb_error_name(result));
+			return {};
+		}
+		const auto stringLength{static_cast<size_t>(result) / 2U};
+		// Set up a string of appropriate length to receive the string data into
+		std::u16string string(stringLength + 1U, u'\0');
+		// Copy the UTF-16 string data into the new string, convert it to UTF-8 and return it
+		std::memcpy(string.data(), stringData.data(), stringLength);
+		return utf16::convert(string);
+	}
+
 	[[nodiscard]] bool writeInterrupt(const uint8_t endpoint, const void *const bufferPtr, const int32_t bufferLen) const noexcept
 		{ return interruptTransfer(endpointAddress(endpointDir_t::controllerOut, endpoint), bufferPtr, bufferLen); }
 
@@ -246,7 +276,9 @@ public:
 		}
 	}
 
-	usbDevice_t(const usbDevice_t &) noexcept = delete;
+	usbDevice_t(const usbDevice_t &device_) noexcept : device{device_.device}, descriptor{device_.descriptor}
+		{ libusb_ref_device(device); }
+
 	usbDevice_t(usbDevice_t &&other) noexcept : usbDevice_t{} { swap(other); }
 	usbDevice_t &operator =(const usbDevice_t &) noexcept = delete;
 
@@ -265,6 +297,9 @@ public:
 
 	[[nodiscard]] auto vid() const noexcept { return descriptor.idVendor; }
 	[[nodiscard]] auto pid() const noexcept { return descriptor.idProduct; }
+	[[nodiscard]] auto manufacturerIndex() const noexcept { return descriptor.iManufacturer; }
+	[[nodiscard]] auto productIndex() const noexcept { return descriptor.iProduct; }
+	[[nodiscard]] auto serialNumberIndex() const noexcept { return descriptor.iSerialNumber; }
 
 	[[nodiscard]] auto busNumber() const noexcept { return libusb_get_bus_number(device); }
 	[[nodiscard]] auto portNumber() const noexcept { return libusb_get_port_number(device); }

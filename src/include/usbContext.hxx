@@ -43,6 +43,7 @@ public:
 	usbContext_t(usbContext_t &&other) noexcept : usbContext_t{} { swap(other); }
 	usbContext_t &operator =(const usbContext_t &) noexcept = delete;
 
+	// NOLINTNEXTLINE(modernize-use-equals-default)
 	~usbContext_t() noexcept
 	{
 		if (context)
@@ -57,6 +58,7 @@ public:
 
 	[[nodiscard]] bool valid() const noexcept { return context; }
 
+	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] usbDeviceList_t deviceList() const noexcept
 	{
 		libusb_device **list{nullptr};
