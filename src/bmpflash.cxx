@@ -83,14 +83,16 @@ int main(int, char **)
 	if (!context.valid())
 		return 2;
 
-	const auto devices = findBMPs(context);
+	const auto devices{findBMPs(context)};
 	if (devices.empty())
 	{
 		console.error("Could not find any Black Magic Probes"sv);
 		console.warn("Are you sure the permissions on the device are set correctly?"sv);
 		return 1;
 	}
-	const auto device = filterDevices(devices, std::nullopt);
+	const auto device{filterDevices(devices, std::nullopt)};
+	if (!device)
+		return 1;
 
 	return 0;
 }
