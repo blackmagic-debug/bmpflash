@@ -23,8 +23,10 @@ public:
 	[[nodiscard]] uint8_t endpoints() const noexcept { return interface->bNumEndpoints; }
 	[[nodiscard]] auto interfaceClass() const noexcept
 		{ return static_cast<usb::descriptors::usbClass_t>(interface->bInterfaceClass); }
-	[[nodiscard]] uint8_t interfaceSubClass() const noexcept { return interface->bInterfaceSubClass; }
-	[[nodiscard]] uint8_t interfaceProtocol() const noexcept { return interface->bInterfaceProtocol; }
+	template<typename T> [[nodiscard]] auto interfaceSubClass() const noexcept
+		{ return static_cast<T>(interface->bInterfaceSubClass); }
+	template<typename T> [[nodiscard]] auto interfaceProtocol() const noexcept
+		{ return static_cast<T>(interface->bInterfaceProtocol); }
 	[[nodiscard]] auto interfaceIndex() const noexcept { return interface->iInterface; }
 
 	[[nodiscard]] usbEndpoint_t endpoint(const size_t index) const noexcept

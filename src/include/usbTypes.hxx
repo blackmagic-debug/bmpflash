@@ -13,7 +13,7 @@ namespace usb::descriptors
 	{
 		none = 0x00U,
 		audio = 0x01U,
-		cdcACM = 0x02U,
+		cdcComms = 0x02U,
 		hid = 0x03U,
 		physical = 0x05U,
 		image = 0x06U,
@@ -34,6 +34,30 @@ namespace usb::descriptors
 		application = 0xFEU,
 		vendor = 0xFFU
 	};
+
+	namespace subclasses
+	{
+		enum class cdcComms_t : uint8_t
+		{
+			directLineControl = 1,
+			abstractControl = 2,
+			telephoneControl = 3,
+			multiChannelControl = 4,
+			capiControl = 5,
+			ethernetNetworkingControl = 6,
+			atmNetworkingControl = 7,
+		};
+	} // namespace subclasses
+
+	namespace protocols
+	{
+		enum class cdcComms_t : uint8_t
+		{
+			none = 0,
+			v25ter = 1,
+			vendor = 255,
+		};
+	} // namespace protocols
 } // namespace usb::descriptors
 
 #endif /*USB_TYPES_HXX*/
