@@ -43,13 +43,14 @@ size_t countUnits(const std::u16string_view &string) noexcept
 		// Something in the Basic Multilingual Plane
 		else
 		{
-			// It has to be at least one UTF-8 unit.
-			++count;
-			// Check if the value is more than 0x007f, in which case we have at least 2 units
-			if (unitA > 0x007fU)
-				++count;
 			// If it's also above 0x07ff, that's a 3-byte unit
 			if (unitA > 0x07ffU)
+				count += 3U;
+			// If the value is more than 0x007f, that's a 2-byte unit
+			else if (unitA > 0x007fU)
+				count += 2U;
+			else
+			// Otherwise it's a single byte unit
 				++count;
 		}
 	}
