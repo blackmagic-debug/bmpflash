@@ -18,7 +18,9 @@ public:
 
 	[[nodiscard]] bool valid() const noexcept { return interface; }
 	[[nodiscard]] uint8_t endpoints() const noexcept { return interface->bNumEndpoints; }
-
+	[[nodiscard]] uint8_t interfaceClass() const noexcept { return interface->bInterfaceClass; }
+	[[nodiscard]] uint8_t interfaceSubClass() const noexcept { return interface->bInterfaceSubClass; }
+	[[nodiscard]] uint8_t interfaceProtocol() const noexcept { return interface->bInterfaceProtocol; }
 	[[nodiscard]] auto interfaceIndex() const noexcept { return interface->iInterface; }
 };
 
