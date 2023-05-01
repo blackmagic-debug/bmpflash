@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <libusb.h>
 
+#include "usbEndpoint.hxx"
+
 struct usbInterfaceAltMode_t final
 {
 private:
@@ -22,6 +24,15 @@ public:
 	[[nodiscard]] uint8_t interfaceSubClass() const noexcept { return interface->bInterfaceSubClass; }
 	[[nodiscard]] uint8_t interfaceProtocol() const noexcept { return interface->bInterfaceProtocol; }
 	[[nodiscard]] auto interfaceIndex() const noexcept { return interface->iInterface; }
+
+	[[nodiscard]] usbEndpoint_t endpoint(const size_t index) const noexcept
+	{
+		// If the endpoint requested doesn't exist, return a dummy one
+		if (index >= interface->bNumEndpoints)
+			return {};
+		// Otherwise return a real one
+		return {interface->endpoint + index};
+	}
 };
 
 struct usbInterface_t final
