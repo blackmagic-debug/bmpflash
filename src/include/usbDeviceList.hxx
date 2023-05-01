@@ -52,7 +52,7 @@ public:
 	~usbDeviceList_t() noexcept
 	{
 		if (count)
-			libusb_free_device_list(deviceList, false);
+			libusb_free_device_list(deviceList, true);
 	}
 
 	usbDeviceList_t &operator =(usbDeviceList_t &&other) noexcept
