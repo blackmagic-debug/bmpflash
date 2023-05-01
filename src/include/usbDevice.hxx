@@ -4,10 +4,24 @@
 #ifndef USB_DEVICE_HXX
 #define USB_DEVICE_HXX
 
+#ifndef __STDC_VERSION__
+// Horrible hack to make libusb conformant and not do stupid things.
+// NOLINTNEXTLINE(bugprone-reserved-identifier,cppcoreguidelines-macro-usage,cert-dcl37-c,cert-dcl51-cpp)
+#define __STDC_VERSION__ 199901L
+#endif
+
 #include <string_view>
 #include <utility>
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 #include <libusb.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #include <substrate/console>
+
 #include "unicode.hxx"
 
 using namespace std::literals::string_view_literals;
