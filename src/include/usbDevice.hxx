@@ -158,6 +158,8 @@ public:
 	usbDeviceHandle_t() noexcept = default;
 	usbDeviceHandle_t(libusb_device_handle *const device_) noexcept : device{device_}
 		{ autoDetachKernelDriver(true); }
+	~usbDeviceHandle_t() noexcept
+		{ libusb_close(device); }
 	[[nodiscard]] bool valid() const noexcept { return device; }
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
