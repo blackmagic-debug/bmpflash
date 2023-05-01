@@ -65,7 +65,7 @@ public:
 		auto result = libusb_get_device_list(context, &list);
 		if (result < 0)
 		{
-			console.error("Failed to get device list: "sv, libusb_error_name(result));
+			console.error("Failed to get device list: "sv, libusb_error_name(static_cast<int>(result)));
 			return {};
 		}
 		return {list, result};
