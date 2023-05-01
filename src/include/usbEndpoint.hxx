@@ -6,6 +6,8 @@
 
 #include <libusb.h>
 
+#include "usbTypes.hxx"
+
 struct usbEndpoint_t final
 {
 private:
@@ -16,6 +18,9 @@ public:
 	usbEndpoint_t(const libusb_endpoint_descriptor *const endpoint_) noexcept : endpoint{endpoint_} { }
 
 	[[nodiscard]] bool valid() const noexcept { return endpoint; }
+	[[nodiscard]] auto direction() const noexcept
+		{ return static_cast<endpointDir_t>(endpoint->bEndpointAddress & ~endpointDirMask); }
+	[[nodiscard]] uint8_t address() const noexcept { return endpoint->bEndpointAddress & endpointDirMask; }
 };
 
 #endif /*USB_ENDPOINT_HXX*/

@@ -80,6 +80,7 @@ uint8_t extractDataInterface(const usbDeviceHandle_t &device, const usbConfigura
 		if (ifaceName != "Black Magic GDB Server"sv)
 			continue;
 
+		// Found it! Now parse the CDC functional descriptors that follow to find the data interface number
 		return locateDataInterface(firstAltMode.extraDescriptors());
 	}
 	return UINT8_MAX;
@@ -91,11 +92,48 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 	const auto config{usbDevice.activeConfiguration()};
 	if (!config.valid())
 		return;
-	const auto dataIfaceIndex{extractDataInterface(device, config)};
+	// Then hunt through the descriptors looking for the data interface number
+	const auto dataIfaceNumber{extractDataInterface(device, config)};
 	// Check for errors finding the data interface
-	if (dataIfaceIndex == UINT8_MAX)
+	if (dataIfaceNumber == UINT8_MAX)
 	{
 		console.error("Failed to find GDB server data interface"sv);
 		return;
+	}
+
+	// Re-iterate the interface list to find the data interface
+	for (const auto idx : substrate::indexSequence_t{config.interfaces()})
+	{
+		// Get each interface and inspect the first alt-mode
+		const auto interface{config.interface(idx)};
+		const auto firstAltMode{interface.altMode(0)};
+
+		// Check if the interface matches the data interface index
+		if (firstAltMode.interfaceNumber() != dataIfaceNumber)
+			continue;
+
+		// We've got a match, so now check how many endpoints are reported
+		if (firstAltMode.endpoints() != 2U)
+		{
+			console.error("Probe descriptors are invalid"sv);
+			return;
+		}
+		// And iterate through them to extract the addresses
+		for (const auto epIndex : substrate::indexSequence_t{2U})
+		{
+			const auto endpoint{firstAltMode.endpoint(epIndex)};
+			if (endpoint.direction() == endpointDir_t::controllerOut)
+				txEndpoint = endpoint.address();
+			else
+				rxEndpoint = endpoint.address();
+		}
+		break;
+	}
+	// Validate the endpoint IDs
+	if (!txEndpoint || !rxEndpoint)
+	{
+		// If either of them are bad, invalidate both.
+		txEndpoint = 0U;
+		rxEndpoint = 0U;
 	}
 }

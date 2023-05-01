@@ -22,6 +22,7 @@ public:
 
 	[[nodiscard]] bool valid() const noexcept { return interface; }
 	[[nodiscard]] uint8_t endpoints() const noexcept { return interface->bNumEndpoints; }
+	[[nodiscard]] uint8_t interfaceNumber() const noexcept { return interface->bInterfaceNumber; }
 	[[nodiscard]] auto interfaceClass() const noexcept
 		{ return static_cast<usb::descriptors::usbClass_t>(interface->bInterfaceClass); }
 	template<typename T> [[nodiscard]] auto interfaceSubClass() const noexcept
