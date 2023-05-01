@@ -24,20 +24,11 @@
 
 #include "unicode.hxx"
 #include "usbConfiguration.hxx"
+#include "usbTypes.hxx"
 
 using namespace std::literals::string_view_literals;
 using substrate::console;
 using substrate::asHex_t;
-
-enum class endpointDir_t : uint8_t
-{
-	controllerOut = 0x00U,
-	controllerIn = 0x80U
-};
-
-constexpr static const uint8_t endpointDirMask{0x7F};
-constexpr inline uint8_t endpointAddress(const endpointDir_t dir, const uint8_t number) noexcept
-	{ return uint8_t(dir) | (number & endpointDirMask); }
 
 enum class request_t : uint8_t
 {

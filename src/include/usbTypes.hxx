@@ -6,6 +6,16 @@
 
 #include <cstdint>
 
+enum class endpointDir_t : uint8_t
+{
+	controllerOut = 0x00U,
+	controllerIn = 0x80U
+};
+
+constexpr static const uint8_t endpointDirMask{0x7fU};
+constexpr inline uint8_t endpointAddress(const endpointDir_t dir, const uint8_t number) noexcept
+	{ return uint8_t(dir) | (number & endpointDirMask); }
+
 // This code is borrowed from dragonUSB
 namespace usb::descriptors
 {
