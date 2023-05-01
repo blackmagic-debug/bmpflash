@@ -209,7 +209,7 @@ public:
 		// Set up a string of appropriate length to receive the string data into
 		std::u16string string(stringLength + 1U, u'\0');
 		// Copy the UTF-16 string data into the new string, convert it to UTF-8 and return it
-		std::memcpy(string.data(), stringData.data(), stringLength);
+		std::memcpy(string.data(), stringData.data(), stringLength * 2U);
 		return utf16::convert(string);
 	}
 
