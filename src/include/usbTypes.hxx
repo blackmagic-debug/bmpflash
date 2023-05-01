@@ -58,6 +58,60 @@ namespace usb::descriptors
 			vendor = 255,
 		};
 	} // namespace protocols
+
+	namespace cdc
+	{
+		enum class descriptorType_t : uint8_t
+		{
+			interface = 0x24U,
+			endpoint = 0x25U,
+		};
+
+		enum class descriptorSubtype_t : uint8_t
+		{
+			header = 0U,
+			callManagement = 1U,
+			abstractControlManagement = 2U,
+			directLineManagement = 3U,
+			telephoneRinger = 4U,
+			telephoneCapabilities = 5U,
+			interfaceUnion = 6U,
+			countrySelection = 7U,
+			telephoneOperational = 8U,
+			usbTerminal = 9U,
+			networkChannel = 10U,
+			protocolUnit = 11U,
+			extensionUnit = 12U,
+			multiChannelManagement = 13U,
+			capiControlManagement = 14U,
+			ethernetNetworking = 15U,
+			atmNetworking = 16U,
+		};
+
+		struct functionalDescriptor_t final
+		{
+			uint8_t length;
+			descriptorType_t type;
+			descriptorSubtype_t subtype;
+		};
+
+		struct [[gnu::packed]] headerDescriptor_t final
+		{
+			uint8_t length;
+			descriptorType_t type;
+			descriptorSubtype_t subtype;
+			uint16_t cdcVersion;
+		};
+
+		struct callManagementDescriptor_t final
+		{
+			uint8_t length;
+			descriptorType_t type;
+			descriptorSubtype_t subtype;
+			uint8_t capabilities;
+			uint8_t dataInterface;
+		};
+	} // namespace cdc
 } // namespace usb::descriptors
 
 #endif /*USB_TYPES_HXX*/

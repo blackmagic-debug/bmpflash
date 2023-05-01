@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <libusb.h>
+#include <substrate/span>
 
 #include "usbEndpoint.hxx"
 #include "usbTypes.hxx"
@@ -37,6 +38,9 @@ public:
 		// Otherwise return a real one
 		return {interface->endpoint + index};
 	}
+
+	[[nodiscard]] substrate::span<const uint8_t> extraDescriptors() const noexcept
+		{ return {interface->extra, static_cast<size_t>(interface->extra_length)}; }
 };
 
 struct usbInterface_t final
