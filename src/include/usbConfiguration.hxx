@@ -4,7 +4,10 @@
 #ifndef USB_CONFIGURATION_HXX
 #define USB_CONFIGURATION_HXX
 
+#include <cstdint>
 #include <libusb.h>
+
+#include "usbInterface.hxx"
 
 struct usbConfiguration_t final
 {
@@ -18,6 +21,14 @@ public:
 	[[nodiscard]] bool valid() const noexcept { return config; }
 
 	[[nodiscard]] uint8_t interfaces() const noexcept { return config->bNumInterfaces; }
+	[[nodiscard]] usbInterface_t interface(const size_t index) const noexcept
+	{
+		// If the interface requested doesn't exist, return a dummy one
+		if (index >= config->bNumInterfaces)
+			return {};
+		// Otherwise return a real one
+		return {config->interface + index};
+	}
 };
 
 #endif /*USB_CONFIGURATION_HXX*/
