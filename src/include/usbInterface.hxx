@@ -7,6 +7,21 @@
 #include <cstddef>
 #include <libusb.h>
 
+struct usbInterfaceAltMode_t final
+{
+private:
+	const libusb_interface_descriptor *interface{nullptr};
+
+public:
+	usbInterfaceAltMode_t() noexcept = default;
+	usbInterfaceAltMode_t(const libusb_interface_descriptor *const iface) noexcept : interface{iface} { }
+
+	[[nodiscard]] bool valid() const noexcept { return interface; }
+	[[nodiscard]] uint8_t endpoints() const noexcept { return interface->bNumEndpoints; }
+
+	[[nodiscard]] auto interfaceIndex() const noexcept { return interface->iInterface; }
+};
+
 struct usbInterface_t final
 {
 private:
@@ -18,6 +33,15 @@ public:
 
 	[[nodiscard]] bool valid() const noexcept { return interface; }
 	[[nodiscard]] auto altModes() const noexcept { return static_cast<size_t>(interface->num_altsetting); }
+
+	[[nodiscard]] usbInterfaceAltMode_t altMode(const size_t index) const noexcept
+	{
+		// If the alt-mode requested doesn't exist, return a dummy one
+		if (index >= altModes())
+			return {};
+		// Otherwise return a real one
+		return {interface->altsetting + index};
+	}
 };
 
 #endif /*USB_INTERFACE_HXX*/
