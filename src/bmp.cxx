@@ -13,7 +13,7 @@ using cdcCommsProtocol_t = usb::descriptors::protocols::cdcComms_t;
 using usb::descriptors::cdc::functionalDescriptor_t;
 using usb::descriptors::cdc::callManagementDescriptor_t;
 
-template<typename descriptor_t> auto descriptorFromSpan(const substrate::span<const uint8_t> &data)
+template<typename descriptor_t> auto descriptorFromSpan(const substrate::span<const uint8_t> &data) noexcept
 {
 	descriptor_t result{};
 	// Check there's at least enough data to fill the structure
@@ -24,7 +24,7 @@ template<typename descriptor_t> auto descriptorFromSpan(const substrate::span<co
 	return result;
 }
 
-uint8_t locateDataInterface(const substrate::span<const uint8_t> &descriptorData)
+uint8_t locateDataInterface(const substrate::span<const uint8_t> &descriptorData) noexcept
 {
 	using usb::descriptors::cdc::descriptorType_t;
 	using usb::descriptors::cdc::descriptorSubtype_t;
@@ -56,23 +56,18 @@ uint8_t locateDataInterface(const substrate::span<const uint8_t> &descriptorData
 	return UINT8_MAX;
 }
 
-bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
+uint8_t extractDataInterface(const usbDeviceHandle_t &device, const usbConfiguration_t &config)
 {
-	// To figure out the endpoints for the GDB serial port, first grab the active configuration
-	const auto config{usbDevice.activeConfiguration()};
-	if (!config.valid())
-		return;
-	uint8_t dataIfaceIndex{UINT8_MAX};
-	// Then iterate through the interfaces it defines
+	// Iterate through the interfaces the configuration defines
 	for (const auto idx : substrate::indexSequence_t{config.interfaces()})
 	{
 		// Get each interface and inspect the first alt-mode
 		const auto interface{config.interface(idx)};
 		if (!interface.valid())
-			return;
+			break;
 		const auto firstAltMode{interface.altMode(0)};
 		if (!firstAltMode.valid())
-			return;
+			break;
 
 		// Look for interfaces implementing CDC ACM
 		if (firstAltMode.interfaceClass() != usbClass_t::cdcComms ||
@@ -85,9 +80,18 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		if (ifaceName != "Black Magic GDB Server"sv)
 			continue;
 
-		dataIfaceIndex = locateDataInterface(firstAltMode.extraDescriptors());
-		break;
+		return locateDataInterface(firstAltMode.extraDescriptors());
 	}
+	return UINT8_MAX;
+}
+
+bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
+{
+	// To figure out the endpoints for the GDB serial port, first grab the active configuration
+	const auto config{usbDevice.activeConfiguration()};
+	if (!config.valid())
+		return;
+	const auto dataIfaceIndex{extractDataInterface(device, config)};
 	// Check for errors finding the data interface
 	if (dataIfaceIndex == UINT8_MAX)
 	{
