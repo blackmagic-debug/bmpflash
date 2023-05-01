@@ -65,7 +65,7 @@ substrate = subproject(
 libusb = dependency('libusb-1.0', version: '>=1.0.21', native: true)
 
 bmpflashSrc = [
-	'bmpflash.cxx', 'unicode.cxx', 'bmp.cxx'
+	'bmpflash.cxx', 'unicode.cxx', 'bmp.cxx', 'remoteSPI.cxx'
 ]
 
 bmpflash = executable(

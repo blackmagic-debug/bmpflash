@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#include <cstring>
 #include <substrate/console>
 #include <substrate/index_sequence>
 #include <substrate/span>
@@ -136,4 +137,31 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		txEndpoint = 0U;
 		rxEndpoint = 0U;
 	}
+}
+
+void bmp_t::writePacket(const std::string_view &packet) const
+{
+	console.debug("Remote write: "sv, packet);
+	if (!device.writeBulk(txEndpoint, packet.data(), static_cast<int32_t>(packet.length())))
+		throw bmpCommsError_t{};
+}
+
+std::string bmp_t::readPacket() const
+{
+	std::array<char, maxPacketSize + 1U> packet{};
+	// Read back what we can
+	if (!device.readBulk(rxEndpoint, packet.data(), maxPacketSize))
+		throw bmpCommsError_t{};
+	// Figure out how long that is
+	const auto length{std::strlen(packet.data())};
+	// Make a new std::string of an appropriate length
+	std::string result(length + 1U, '\0');
+	// And copy the result string in, returning it
+	std::memcpy(result.data(), packet.data(), length);
+	return result;
+}
+
+const char *bmpCommsError_t::what() const noexcept
+{
+	return "Communications failure with Black Magic Probe";
 }
