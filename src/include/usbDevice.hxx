@@ -23,6 +23,7 @@
 #include <substrate/console>
 
 #include "unicode.hxx"
+#include "usbConfiguration.hxx"
 
 using namespace std::literals::string_view_literals;
 using substrate::console;
@@ -330,6 +331,17 @@ public:
 			return {};
 		}
 		return {handle};
+	}
+
+	[[nodiscard]] usbConfiguration_t activeConfiguration() const noexcept
+	{
+		libusb_config_descriptor *config = nullptr;
+		if (const auto result{libusb_get_active_config_descriptor(device, &config)}; result)
+		{
+			console.error("Failed to get active configuration descriptor: "sv, libusb_error_name(result));
+			return {};
+		}
+		return {config};
 	}
 
 	void swap(usbDevice_t &other) noexcept
