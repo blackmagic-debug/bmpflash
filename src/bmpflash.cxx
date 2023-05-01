@@ -7,6 +7,7 @@
 #include <substrate/indexed_iterator>
 #include <substrate/console>
 #include "usbContext.hxx"
+#include "bmp.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
@@ -83,6 +84,7 @@ int main(int, char **)
 	if (!context.valid())
 		return 2;
 
+	// Find all BMPs attached to the system
 	const auto devices{findBMPs(context)};
 	if (devices.empty())
 	{
@@ -90,8 +92,14 @@ int main(int, char **)
 		console.warn("Are you sure the permissions on the device are set correctly?"sv);
 		return 1;
 	}
+	// Filter them to get just one device to work with
 	const auto device{filterDevices(devices, std::nullopt)};
 	if (!device)
+		return 1;
+
+	// Use the found device to then build the communications structure
+	const bmp_t probe{*device};
+	if (!probe.valid())
 		return 1;
 
 	return 0;
