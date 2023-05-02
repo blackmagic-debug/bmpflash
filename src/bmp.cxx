@@ -134,10 +134,10 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		}
 		break;
 	}
-	// Validate the endpoint IDs
-	if (!txEndpoint || !rxEndpoint)
+	// Validate the endpoint IDs and claim the interface
+	if (!txEndpoint || !rxEndpoint || !device.claimInterface(dataIfaceNumber))
 	{
-		// If either of them are bad, invalidate both.
+		// If either of them are bad, or we couldn't claim the interface, invalidate both.
 		txEndpoint = 0U;
 		rxEndpoint = 0U;
 	}
