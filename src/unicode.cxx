@@ -49,9 +49,12 @@ size_t countUnits(const std::u16string_view &string) noexcept
 			// If the value is more than 0x007f, that's a 2-byte unit
 			else if (unitA > 0x007fU)
 				count += 2U;
-			else
+			else if (unitA != 0U)
 			// Otherwise it's a single byte unit
 				++count;
+			// If we found a NUL character, stop counting.
+			if (unitA == 0U)
+				break;
 		}
 	}
 	return count;
@@ -64,7 +67,7 @@ std::string utf16::convert(const std::u16string_view &string) noexcept
 	if (!lengthUTF8)
 		return {};
 	// Allocate a suitably long string
-	std::string result(lengthUTF8 + 1U, '\0');
+	std::string result(lengthUTF8, '\0');
 	// Prepare to iterate over the input string data
 	const auto *const stringData{string.data()};
 	const auto lengthUTF16{string.length()};
@@ -76,7 +79,7 @@ std::string utf16::convert(const std::u16string_view &string) noexcept
 		if ((unitA & 0xfe00U) == 0xd800U)
 		{
 			// Recover the upper 10 (11) bits from the high surrogate unit we already have
-			const auto upper{(unitA & 0x0effU) + 0x0040U};
+			const auto upper{(unitA & 0x03ffU) + 0x0040U};
 			++inputOffset;
 			// Recover the lower 10 bits from the low surrogate unit
 			const auto lower{safeIndex(stringData, inputOffset, lengthUTF16) & 0x03ffU};
