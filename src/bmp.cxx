@@ -59,7 +59,7 @@ uint8_t locateDataInterface(const substrate::span<const uint8_t> &descriptorData
 	return UINT8_MAX;
 }
 
-uint8_t extractDataInterface(const usbDeviceHandle_t &device, const usbConfiguration_t &config)
+std::pair<uint8_t, uint8_t> extractGDBInterface(const usbDeviceHandle_t &device, const usbConfiguration_t &config)
 {
 	// Iterate through the interfaces the configuration defines
 	for (const auto idx : substrate::indexSequence_t{config.interfaces()})
@@ -86,9 +86,9 @@ uint8_t extractDataInterface(const usbDeviceHandle_t &device, const usbConfigura
 		console.debug("Found GDB server interface at index "sv, idx, " ("sv, firstAltMode.interfaceNumber(), ')');
 
 		// Found it! Now parse the CDC functional descriptors that follow to find the data interface number
-		return locateDataInterface(firstAltMode.extraDescriptors());
+		return {firstAltMode.interfaceNumber(), locateDataInterface(firstAltMode.extraDescriptors())};
 	}
-	return UINT8_MAX;
+	return {UINT8_MAX, UINT8_MAX};
 }
 
 bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
@@ -98,9 +98,9 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 	if (!config.valid())
 		return;
 	// Then hunt through the descriptors looking for the data interface number
-	const auto dataIfaceNumber{extractDataInterface(device, config)};
+	std::tie(ctrlInterfaceNumber, dataInterfaceNumber) = extractGDBInterface(device, config);
 	// Check for errors finding the data interface
-	if (dataIfaceNumber == UINT8_MAX)
+	if (dataInterfaceNumber == UINT8_MAX)
 	{
 		console.error("Failed to find GDB server data interface"sv);
 		return;
@@ -114,7 +114,7 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		const auto firstAltMode{interface.altMode(0)};
 
 		// Check if the interface matches the data interface index
-		if (firstAltMode.interfaceNumber() != dataIfaceNumber)
+		if (firstAltMode.interfaceNumber() != dataInterfaceNumber)
 			continue;
 
 		// We've got a match, so now check how many endpoints are reported
@@ -135,7 +135,7 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		break;
 	}
 	// Validate the endpoint IDs and claim the interface
-	if (!txEndpoint || !rxEndpoint || !device.claimInterface(dataIfaceNumber))
+	if (!txEndpoint || !rxEndpoint || !device.claimInterface(dataInterfaceNumber))
 	{
 		// If either of them are bad, or we couldn't claim the interface, invalidate both.
 		txEndpoint = 0U;

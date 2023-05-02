@@ -20,6 +20,8 @@ struct bmp_t final
 {
 private:
 	usbDeviceHandle_t device;
+	uint8_t ctrlInterfaceNumber{UINT8_MAX};
+	uint8_t dataInterfaceNumber{UINT8_MAX};
 	uint8_t txEndpoint{};
 	uint8_t rxEndpoint{};
 	constexpr static size_t maxPacketSize{1024U};
