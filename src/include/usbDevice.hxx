@@ -10,6 +10,7 @@
 #define __STDC_VERSION__ 199901L
 #endif
 
+#include <cassert>
 #include <string_view>
 #include <utility>
 #ifdef __GNUC__
@@ -213,11 +214,14 @@ public:
 				asHex_t<4, '0'>(languageID), ", reason:"sv, libusb_error_name(result));
 			return {};
 		}
-		const auto stringLength{static_cast<size_t>(result) / 2U};
+		assert(result >= 2);
+		// The result is the complete descriptor, header and all, so discard the header bytes
+		// and subtract that from the length to decode.
+		const auto stringLength{static_cast<size_t>(result - 2) / 2U};
 		// Set up a string of appropriate length to receive the string data into
 		std::u16string string(stringLength + 1U, u'\0');
 		// Copy the UTF-16 string data into the new string, convert it to UTF-8 and return it
-		std::memcpy(string.data(), stringData.data(), stringLength * 2U);
+		std::memcpy(string.data(), stringData.data() + 2U, stringLength * 2U);
 		return utf16::convert(string);
 	}
 
