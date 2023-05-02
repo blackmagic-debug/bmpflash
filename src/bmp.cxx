@@ -13,6 +13,8 @@ using cdcCommsSubclass_t = usb::descriptors::subclasses::cdcComms_t;
 using cdcCommsProtocol_t = usb::descriptors::protocols::cdcComms_t;
 using usb::descriptors::cdc::functionalDescriptor_t;
 using usb::descriptors::cdc::callManagementDescriptor_t;
+using cdcRequest_t = usb::types::cdc::request_t;
+using usb::types::cdc::controlLines_t;
 
 template<typename descriptor_t> auto descriptorFromSpan(const substrate::span<const uint8_t> &data) noexcept
 {
@@ -134,13 +136,28 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		}
 		break;
 	}
-	// Validate the endpoint IDs and claim the interface
-	if (!txEndpoint || !rxEndpoint || !device.claimInterface(dataInterfaceNumber))
+	// Validate the endpoint IDs and claim the interface, then, having claimed the interface
+	// ask it to become active by sending a SET_CONTROL_LINE_STATE control request via
+	// the associated CDC control interface}
+	if (!txEndpoint || !rxEndpoint || !device.claimInterface(dataInterfaceNumber) ||
+		!device.writeControl({recipient_t::interface, request_t::typeClass}, uint8_t(cdcRequest_t::setControlLineState),
+			controlLines_t::dtrPresent | controlLines_t::rtsActivate, ctrlInterfaceNumber, nullptr))
 	{
-		// If either of them are bad, or we couldn't claim the interface, invalidate both.
+		// If either of them are bad, we couldn't claim the interface, or we couldn't send the control request, invalidate both.
 		txEndpoint = 0U;
 		rxEndpoint = 0U;
 	}
+}
+
+bmp_t::~bmp_t() noexcept
+{
+	if (ctrlInterfaceNumber != UINT8_MAX)
+		// Send a SET_CONTROL_LINE_STATE control request to reset the interface
+		static_cast<void>(device.writeControl({recipient_t::interface, request_t::typeClass},
+			uint8_t(cdcRequest_t::setControlLineState), 0U, ctrlInterfaceNumber, nullptr));
+	if (dataInterfaceNumber != UINT8_MAX)
+		// And release the interface again
+		static_cast<void>(device.releaseInterface(dataInterfaceNumber));
 }
 
 void bmp_t::writePacket(const std::string_view &packet) const

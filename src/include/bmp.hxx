@@ -31,6 +31,7 @@ private:
 
 public:
 	bmp_t(const usbDevice_t &usbDevice);
+	~bmp_t() noexcept;
 	[[nodiscard]] bool valid() const noexcept { return device.valid() && txEndpoint && rxEndpoint; }
 
 	[[nodiscard]] std::string init() const;
