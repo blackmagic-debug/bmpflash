@@ -124,4 +124,60 @@ namespace usb::descriptors
 	} // namespace cdc
 } // namespace usb::descriptors
 
+namespace usb::types::cdc
+{
+	enum class request_t : uint8_t
+	{
+		sendEncapsulatedCommand = 0x00U,
+		getEncapsulatedResponse = 0x01U,
+		setCommFeature = 0x02U,
+		getCommFeature = 0x03U,
+		clearCommFeature = 0x04U,
+
+		setAuxLineState = 0x10U,
+		setHookState = 0x11U,
+		pulseSetup = 0x12U,
+		sendPulse = 0x13U,
+		setPulseTime = 0x14U,
+		ringAuxJack = 0x15U,
+
+		setLineCoding = 0x20U,
+		getLineCoding = 0x21U,
+		setControlLineState = 0x22U,
+		sendBreak = 0x23U,
+
+		setRingerParams = 0x30U,
+		getRingerParams = 0x31U,
+		setOperationParmas = 0x32U,
+		getOperatoinParams = 0x33U,
+		setLineParams = 0x34U,
+		getLineParams = 0x35U,
+		dialDigits = 0x36U,
+		setUnitParameter = 0x37U,
+		getUnitParameter = 0x38U,
+		clearUnitParameter = 0x39U,
+		getProfile = 0x3aU,
+
+		setEthernetMulticastFilters = 0x40U,
+		setEthernetPowerManagementPattern = 0x41U,
+		getEthernetPowerManagementPattern = 0x42U,
+		setEthernetPacketFilter = 0x43U,
+		getEthernetStatistic = 0x44U,
+
+		setATMDataFormat = 0x50U,
+		getATMDeviceStatistics = 0x51U,
+		setATMDefaultVC = 0x52U,
+		getATMVCStatistics = 0x53U,
+	};
+
+	enum class controlLines_t : uint16_t
+	{
+		dtrPresent = 1U,
+		rtsActivate = 2U,
+	};
+
+	constexpr inline uint16_t operator |(const controlLines_t a, const controlLines_t b) noexcept
+		{ return uint16_t(a) | uint16_t(b); }
+} // namespace usb::types::cdc
+
 #endif /*USB_TYPES_HXX*/
