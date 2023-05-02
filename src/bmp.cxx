@@ -139,7 +139,7 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 	// Validate the endpoint IDs and claim the interface, then, having claimed the interface
 	// ask it to become active by sending a SET_CONTROL_LINE_STATE control request via
 	// the associated CDC control interface}
-	if (!txEndpoint || !rxEndpoint || !device.claimInterface(dataInterfaceNumber) ||
+	if (!txEndpoint || !rxEndpoint || !device.claimInterface(ctrlInterfaceNumber) || !device.claimInterface(dataInterfaceNumber) ||
 		!device.writeControl({recipient_t::interface, request_t::typeClass}, uint8_t(cdcRequest_t::setControlLineState),
 			controlLines_t::dtrPresent | controlLines_t::rtsActivate, ctrlInterfaceNumber, nullptr))
 	{
@@ -156,8 +156,11 @@ bmp_t::~bmp_t() noexcept
 		static_cast<void>(device.writeControl({recipient_t::interface, request_t::typeClass},
 			uint8_t(cdcRequest_t::setControlLineState), 0U, ctrlInterfaceNumber, nullptr));
 	if (dataInterfaceNumber != UINT8_MAX)
-		// And release the interface again
+		// Release the data interface
 		static_cast<void>(device.releaseInterface(dataInterfaceNumber));
+	if (ctrlInterfaceNumber != UINT8_MAX)
+		// Release the data interface
+		static_cast<void>(device.releaseInterface(ctrlInterfaceNumber));
 }
 
 void bmp_t::writePacket(const std::string_view &packet) const
