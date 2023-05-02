@@ -40,11 +40,13 @@ uint8_t locateDataInterface(const substrate::span<const uint8_t> &descriptorData
 			descriptor.type == descriptorType_t::interface &&
 			descriptor.subtype == descriptorSubtype_t::callManagement)
 		{
+			console.debug("Found CDC Call Management descriptor in extra data at +"sv, offset);
 			// Try unpacking the descriptor
 			auto callManagement{descriptorFromSpan<callManagementDescriptor_t>(descriptorData.subspan(offset))};
 			// If the length is 0, unpacking failed so bail out
 			if (!callManagement.length)
 				break;
+			console.debug("Found GDB server data interface number: "sv, callManagement.dataInterface);
 			// Otherwise, we've got our data interface!
 			return callManagement.dataInterface;
 		}
@@ -78,8 +80,10 @@ uint8_t extractDataInterface(const usbDeviceHandle_t &device, const usbConfigura
 
 		// Now grab the interface description string and check it matches the GDB server interface string
 		const auto ifaceName{device.readStringDescriptor(firstAltMode.interfaceIndex())};
+		console.debug("Found CDC ACM interface: "sv, ifaceName);
 		if (ifaceName != "Black Magic GDB Server"sv)
 			continue;
+		console.debug("Found GDB server interface at index "sv, idx, " ("sv, firstAltMode.interfaceNumber(), ')');
 
 		// Found it! Now parse the CDC functional descriptors that follow to find the data interface number
 		return locateDataInterface(firstAltMode.extraDescriptors());
