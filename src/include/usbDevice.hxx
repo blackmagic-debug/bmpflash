@@ -13,6 +13,7 @@
 #include <cassert>
 #include <string_view>
 #include <utility>
+#include <chrono>
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -28,8 +29,11 @@
 #include "usbTypes.hxx"
 
 using namespace std::literals::string_view_literals;
+using namespace std::literals::chrono_literals;
 using substrate::console;
 using substrate::asHex_t;
+
+using milliseconds_t = std::chrono::milliseconds;
 
 enum class request_t : uint8_t
 {
@@ -116,14 +120,14 @@ private:
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] bool bulkTransfer(const uint8_t endpoint, const void *const bufferPtr,
-		const int32_t bufferLen) const noexcept
+		const int32_t bufferLen, const milliseconds_t timeout) const noexcept
 	{
 		// The const-cast here is required becasue libusb is not const-correct. It is UB, but we cannot avoid it.
 		const auto result
 		{
 			libusb_bulk_transfer(device, endpoint,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr, 0)
+				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr, timeout.count())
 		};
 		if (result)
 		{
@@ -231,11 +235,13 @@ public:
 	[[nodiscard]] bool readInterrupt(const uint8_t endpoint, void *const bufferPtr, const int32_t bufferLen) const noexcept
 		{ return interruptTransfer(endpointAddress(endpointDir_t::controllerIn, endpoint), bufferPtr, bufferLen); }
 
-	[[nodiscard]] bool writeBulk(const uint8_t endpoint, const void *const bufferPtr, const int32_t bufferLen) const noexcept
-		{ return bulkTransfer(endpointAddress(endpointDir_t::controllerOut, endpoint), bufferPtr, bufferLen); }
+	[[nodiscard]] bool writeBulk(const uint8_t endpoint, const void *const bufferPtr, const int32_t bufferLen,
+			const milliseconds_t timeout = 0ms) const noexcept
+		{ return bulkTransfer(endpointAddress(endpointDir_t::controllerOut, endpoint), bufferPtr, bufferLen, timeout); }
 
-	[[nodiscard]] bool readBulk(const uint8_t endpoint, void *const bufferPtr, const int32_t bufferLen) const noexcept
-		{ return bulkTransfer(endpointAddress(endpointDir_t::controllerIn, endpoint), bufferPtr, bufferLen); }
+	[[nodiscard]] bool readBulk(const uint8_t endpoint, void *const bufferPtr, const int32_t bufferLen,
+			const milliseconds_t timeout = 0ms) const noexcept
+		{ return bulkTransfer(endpointAddress(endpointDir_t::controllerIn, endpoint), bufferPtr, bufferLen, timeout); }
 
 	template<typename T> bool writeControl(requestType_t requestType, const uint8_t request,
 		const uint16_t value, const uint16_t index, const T &data) const noexcept
