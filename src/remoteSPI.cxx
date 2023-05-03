@@ -14,7 +14,7 @@ constexpr static auto remoteResponseNotSupported{'N'};
 std::string bmp_t::init() const
 {
 	// Ask the firmware to initialise its half of remote communications
-	writePacket("+#&GS#"sv);
+	writePacket("+#!GS#"sv);
 	const auto result{readPacket()};
 	if (result[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
