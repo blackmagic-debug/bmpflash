@@ -109,7 +109,7 @@ private:
 			console.error("Failed to complete interrupt transfer of "sv, bufferLen,
 				" byte(s) to endpoint "sv, endpointNumber, ' ',
 				direction == endpointDir_t::controllerIn ? "IN"sv : "OUT"sv,
-				", reason:"sv, libusb_error_name(result));
+				", reason: "sv, libusb_error_name(result));
 		}
 		return !result;
 	}
@@ -132,7 +132,7 @@ private:
 			console.error("Failed to complete bulk transfer of "sv, bufferLen,
 				" byte(s) to endpoint "sv, endpointNumber, ' ',
 				direction == endpointDir_t::controllerIn ? "IN"sv : "OUT"sv,
-				", reason:"sv, libusb_error_name(result));
+				", reason: "sv, libusb_error_name(result));
 		}
 		return !result;
 	}
@@ -151,7 +151,7 @@ private:
 		if (result < 0)
 		{
 			console.error("Failed to complete control transfer of "sv, bufferLen,
-				" bytes(s), reason:"sv, libusb_error_name(result));
+				" bytes(s), reason: "sv, libusb_error_name(result));
 		}
 		else if (result != bufferLen)
 		{
@@ -211,7 +211,7 @@ public:
 		if (result < 0)
 		{
 			console.error("Failed to read string descriptor "sv, stringIndex, " for language ",
-				asHex_t<4, '0'>(languageID), ", reason:"sv, libusb_error_name(result));
+				asHex_t<4, '0'>(languageID), ", reason: "sv, libusb_error_name(result));
 			return {};
 		}
 		assert(result >= 2);
