@@ -173,15 +173,15 @@ void bmp_t::writePacket(const std::string_view &packet) const
 std::string bmp_t::readPacket() const
 {
 	std::array<char, maxPacketSize + 1U> packet{};
-	// Read back what we can
-	if (!device.readBulk(rxEndpoint, packet.data(), maxPacketSize))
+	// Read back what we can and check we got a valid response packet
+	if (!device.readBulk(rxEndpoint, packet.data(), maxPacketSize) || packet[0] != '&')
 		throw bmpCommsError_t{};
 	// Figure out how long that is
-	const auto length{std::strlen(packet.data())};
+	const auto length{std::strlen(packet.data() + 1U)};
 	// Make a new std::string of an appropriate length
 	std::string result(length + 1U, '\0');
 	// And copy the result string in, returning it
-	std::memcpy(result.data(), packet.data(), length);
+	std::memcpy(result.data(), packet.data() + 1U, length);
 	return result;
 }
 
