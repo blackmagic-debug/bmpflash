@@ -103,7 +103,8 @@ private:
 		{
 			libusb_interrupt_transfer(device, endpoint,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr, timeout.count())
+				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr,
+				static_cast<uint32_t>(timeout.count()))
 		};
 
 		if (result)
@@ -127,7 +128,8 @@ private:
 		{
 			libusb_bulk_transfer(device, endpoint,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr, timeout.count())
+				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr,
+				static_cast<uint32_t>(timeout.count()))
 		};
 		if (result)
 		{
