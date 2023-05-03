@@ -76,6 +76,23 @@ using substrate::indexedIterator_t;
 	return std::nullopt;
 }
 
+bool handleActions(const bmp_t &probe)
+{
+	// Initialise remote communications
+	const auto probeVersion{probe.init()};
+	console.info("Remote is "sv, probeVersion);
+
+	// Start by checking the BMP is running a new enough remote protocol
+	const auto protocolVersion{probe.readProtocolVersion()};
+	if (protocolVersion < 3U)
+	{
+		console.error("Probe is running firmware that is too old, please update it");
+		return false;
+	}
+
+	return true;
+}
+
 int main(int, char **)
 {
 	console = {stdout, stderr};
@@ -102,5 +119,6 @@ int main(int, char **)
 	if (!probe.valid())
 		return 1;
 
-	return 0;
+	// Communicate with the BMP and perform whatever actions they've requested
+	return handleActions(probe) ? 0 : 1;
 }
