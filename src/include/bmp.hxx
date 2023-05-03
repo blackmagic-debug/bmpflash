@@ -35,6 +35,7 @@ public:
 	[[nodiscard]] bool valid() const noexcept { return device.valid() && txEndpoint && rxEndpoint; }
 
 	[[nodiscard]] std::string init() const;
+	[[nodiscard]] uint64_t readProtocolVersion() const;
 };
 
 #endif /*BMP_HXX*/
