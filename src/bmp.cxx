@@ -185,6 +185,7 @@ std::string bmp_t::readPacket() const
 	std::string result(length + 1U, '\0');
 	// And copy the result string in, returning it
 	std::memcpy(result.data(), packet.data() + 1U, length);
+	console.debug("Remote read: "sv, result);
 	return result;
 }
 
