@@ -147,6 +147,9 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 		txEndpoint = 0U;
 		rxEndpoint = 0U;
 	}
+	// Having adjusted the line state, try to do a read of the serial state notification which will be sat in the buffer
+	std::array<uint8_t, 10U> serialState{};
+	static_cast<void>(device.readBulk(rxEndpoint, serialState.data(), serialState.size(), 100ms));
 }
 
 bmp_t::~bmp_t() noexcept
