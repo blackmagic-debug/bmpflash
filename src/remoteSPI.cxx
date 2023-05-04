@@ -15,10 +15,13 @@ constexpr static auto remoteResponseParameterError{'P'};
 constexpr static auto remoteResponseError{'E'};
 constexpr static auto remoteResponseNotSupported{'N'};
 
+constexpr static auto remoteInit{"+#!GA#"sv};
+constexpr static auto remoteProtocolVersion{"!HC#"sv};
+
 std::string bmp_t::init() const
 {
 	// Ask the firmware to initialise its half of remote communications
-	writePacket("+#!GA#"sv);
+	writePacket(remoteInit);
 	const auto result{readPacket()};
 	if (result[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
@@ -29,7 +32,7 @@ std::string bmp_t::init() const
 uint64_t bmp_t::readProtocolVersion() const
 {
 	// Send a protocol version request packet
-	writePacket("!HC#"sv);
+	writePacket(remoteProtocolVersion);
 	const auto result{readPacket()};
 	if (result[0] == remoteResponseNotSupported)
 		return 0U;
