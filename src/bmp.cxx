@@ -154,6 +154,8 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 
 bmp_t::~bmp_t() noexcept
 {
+	if (spiBus != spiBus_t::none)
+		end();
 	if (ctrlInterfaceNumber != UINT8_MAX)
 		// Send a SET_CONTROL_LINE_STATE control request to reset the interface
 		static_cast<void>(device.writeControl({recipient_t::interface, request_t::typeClass},

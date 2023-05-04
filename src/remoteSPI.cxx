@@ -3,6 +3,7 @@
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
 #include <string>
 #include <string_view>
+#include <fmt/format.h>
 #include <substrate/conversions>
 #include "bmp.hxx"
 
@@ -15,8 +16,12 @@ constexpr static auto remoteResponseParameterError{'P'};
 constexpr static auto remoteResponseError{'E'};
 constexpr static auto remoteResponseNotSupported{'N'};
 
+#define REMOTE_UINT8 "{:02x}"
+
 constexpr static auto remoteInit{"+#!GA#"sv};
 constexpr static auto remoteProtocolVersion{"!HC#"sv};
+constexpr static auto remoteSPIBegin{"!sB" REMOTE_UINT8 "#"sv};
+constexpr static auto remoteSPIEnd{"!sE" REMOTE_UINT8 "#"sv};
 
 std::string bmp_t::init() const
 {
@@ -43,4 +48,24 @@ uint64_t bmp_t::readProtocolVersion() const
 	if (!version.isHex())
 		throw std::domain_error{"version value is not a hex number"s};
 	return version.fromHex();
+}
+
+bool bmp_t::begin(const spiBus_t bus) noexcept
+{
+	const auto request{fmt::format(remoteSPIBegin, uint8_t(bus))};
+	writePacket(request);
+	const auto response{readPacket()};
+	if (response[0] == remoteResponseOK)
+		spiBus = bus;
+	return response[0] == remoteResponseOK;
+}
+
+bool bmp_t::end() noexcept
+{
+	const auto request{fmt::format(remoteSPIEnd, uint8_t(spiBus))};
+	writePacket(request);
+	const auto response{readPacket()};
+	if (response[0] == remoteResponseOK)
+		spiBus = spiBus_t::none;
+	return response[0] == remoteResponseOK;
 }
