@@ -22,23 +22,23 @@ std::string bmp_t::init() const
 {
 	// Ask the firmware to initialise its half of remote communications
 	writePacket(remoteInit);
-	const auto result{readPacket()};
-	if (result[0] != remoteResponseOK)
+	const auto response{readPacket()};
+	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
 	// Return the firmware version string that pops out from that process
-	return result.substr(1U);
+	return response.substr(1U);
 }
 
 uint64_t bmp_t::readProtocolVersion() const
 {
 	// Send a protocol version request packet
 	writePacket(remoteProtocolVersion);
-	const auto result{readPacket()};
-	if (result[0] == remoteResponseNotSupported)
+	const auto response{readPacket()};
+	if (response[0] == remoteResponseNotSupported)
 		return 0U;
-	if (result[0] != remoteResponseOK)
+	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
-	const auto versionString{std::string_view{result}.substr(1U)};
+	const auto versionString{std::string_view{response}.substr(1U)};
 	toInt_t<uint64_t> version{versionString.data(), versionString.length() - 1U};
 	if (!version.isHex())
 		throw std::domain_error{"version value is not a hex number"s};
