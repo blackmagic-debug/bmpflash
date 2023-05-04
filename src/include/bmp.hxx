@@ -41,6 +41,7 @@ private:
 	uint8_t txEndpoint{};
 	uint8_t rxEndpoint{};
 	spiBus_t spiBus{spiBus_t::none};
+	spiDevice_t spiDevice{spiDevice_t::none};
 	constexpr static size_t maxPacketSize{1024U};
 
 	void writePacket(const std::string_view &packet) const;
@@ -53,7 +54,7 @@ public:
 
 	[[nodiscard]] std::string init() const;
 	[[nodiscard]] uint64_t readProtocolVersion() const;
-	[[nodiscard]] bool begin(spiBus_t bus) noexcept;
+	[[nodiscard]] bool begin(spiBus_t bus, spiDevice_t device) noexcept;
 	[[nodiscard]] bool end() noexcept;
 };
 

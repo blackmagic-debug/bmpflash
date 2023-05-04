@@ -90,7 +90,7 @@ bool handleActions(bmp_t &probe)
 		return false;
 	}
 
-	if (!probe.begin(spiBus_t::internal))
+	if (!probe.begin(spiBus_t::internal, spiDevice_t::intFlash))
 		return false;
 
 	return probe.end();

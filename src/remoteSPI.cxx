@@ -50,13 +50,16 @@ uint64_t bmp_t::readProtocolVersion() const
 	return version.fromHex();
 }
 
-bool bmp_t::begin(const spiBus_t bus) noexcept
+bool bmp_t::begin(const spiBus_t bus, const spiDevice_t device) noexcept
 {
 	const auto request{fmt::format(remoteSPIBegin, uint8_t(bus))};
 	writePacket(request);
 	const auto response{readPacket()};
 	if (response[0] == remoteResponseOK)
+	{
 		spiBus = bus;
+		spiDevice = device;
+	}
 	return response[0] == remoteResponseOK;
 }
 
@@ -66,6 +69,9 @@ bool bmp_t::end() noexcept
 	writePacket(request);
 	const auto response{readPacket()};
 	if (response[0] == remoteResponseOK)
+	{
 		spiBus = spiBus_t::none;
+		spiDevice = spiDevice_t::none;
+	}
 	return response[0] == remoteResponseOK;
 }
