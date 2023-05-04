@@ -76,7 +76,7 @@ using substrate::indexedIterator_t;
 	return std::nullopt;
 }
 
-bool handleActions(const bmp_t &probe)
+bool handleActions(bmp_t &probe)
 {
 	// Initialise remote communications
 	const auto probeVersion{probe.init()};
@@ -90,7 +90,10 @@ bool handleActions(const bmp_t &probe)
 		return false;
 	}
 
-	return true;
+	if (!probe.begin(spiBus_t::internal))
+		return false;
+
+	return probe.end();
 }
 
 int main(int, char **)
@@ -115,7 +118,7 @@ int main(int, char **)
 		return 1;
 
 	// Use the found device to then build the communications structure
-	const bmp_t probe{*device};
+	bmp_t probe{*device};
 	if (!probe.valid())
 		return 1;
 
