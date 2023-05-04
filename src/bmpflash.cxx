@@ -84,14 +84,11 @@ bool handleActions(bmp_t &probe)
 
 	// Start by checking the BMP is running a new enough remote protocol
 	const auto protocolVersion{probe.readProtocolVersion()};
-	if (protocolVersion < 3U)
+	if (protocolVersion < 3U || !probe.begin(spiBus_t::internal, spiDevice_t::intFlash))
 	{
 		console.error("Probe is running firmware that is too old, please update it");
 		return false;
 	}
-
-	if (!probe.begin(spiBus_t::internal, spiDevice_t::intFlash))
-		return false;
 
 	return probe.end();
 }
