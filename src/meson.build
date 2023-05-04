@@ -62,6 +62,15 @@ substrate = subproject(
 	'substrate_dep'
 )
 
+fmt = subproject(
+	'fmt',
+	default_options: [
+		'default_library=static',
+	],
+).get_variable(
+	'fmt_dep'
+)
+
 libusb = dependency('libusb-1.0', version: '>=1.0.21', native: true)
 
 bmpflashSrc = [
@@ -73,6 +82,6 @@ bmpflash = executable(
 	bmpflashSrc,
 	cpp_args: ['-D_FORTIFY_SOURCE=2'],
 	include_directories: [include_directories('include')],
-	dependencies: [substrate, libusb],
+	dependencies: [substrate, fmt, libusb],
 	gnu_symbol_visibility: 'inlineshidden'
 )
