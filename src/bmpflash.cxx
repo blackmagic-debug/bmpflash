@@ -8,6 +8,7 @@
 #include <substrate/console>
 #include "usbContext.hxx"
 #include "bmp.hxx"
+#include "flashVendors.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
@@ -76,6 +77,14 @@ using substrate::indexedIterator_t;
 	return std::nullopt;
 }
 
+std::string_view lookupFlashVendor(const uint8_t manufacturer) noexcept
+{
+	const auto vendor{flashVendors.find(manufacturer)};
+	if (vendor == flashVendors.end())
+		return "<Unknown>"sv;
+	return vendor->second;
+}
+
 bool handleActions(bmp_t &probe)
 {
 	// Initialise remote communications
@@ -93,6 +102,9 @@ bool handleActions(bmp_t &probe)
 	const auto chipID{probe.identifyFlash()};
 	console.info("SPI Flash ID: ", asHex_t<2, '0'>{chipID.manufacturer}, ' ',
 		asHex_t<2, '0'>{chipID.type}, ' ', asHex_t<2, '0'>{chipID.capacity});
+	const auto flashSize{UINT32_C(1) << chipID.capacity};
+	console.info("Device is a "sv, flashSize / (1024 * 1024), "MiB device from "sv,
+		lookupFlashVendor(chipID.manufacturer));
 
 	return probe.end();
 }
