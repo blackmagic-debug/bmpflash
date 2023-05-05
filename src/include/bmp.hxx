@@ -30,6 +30,13 @@ enum class spiBus_t : uint8_t
 	none = 255,
 };
 
+struct spiFlashID_t
+{
+	uint8_t manufacturer;
+	uint8_t type;
+	uint8_t capacity;
+};
+
 // This represents a connection to a Black Magic Probe and all the information
 // needed to communicate with its GDB serial port
 struct bmp_t final
@@ -56,6 +63,7 @@ public:
 	[[nodiscard]] uint64_t readProtocolVersion() const;
 	[[nodiscard]] bool begin(spiBus_t bus, spiDevice_t device) noexcept;
 	[[nodiscard]] bool end() noexcept;
+	[[nodiscard]] spiFlashID_t identifyFlash() const;
 };
 
 #endif /*BMP_HXX*/

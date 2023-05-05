@@ -90,6 +90,10 @@ bool handleActions(bmp_t &probe)
 		return false;
 	}
 
+	const auto chipID{probe.identifyFlash()};
+	console.info("SPI Flash ID: ", asHex_t<2, '0'>{chipID.manufacturer}, ' ',
+		asHex_t<2, '0'>{chipID.type}, ' ', asHex_t<2, '0'>{chipID.capacity});
+
 	return probe.end();
 }
 

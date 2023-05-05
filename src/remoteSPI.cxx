@@ -22,6 +22,7 @@ constexpr static auto remoteInit{"+#!GA#"sv};
 constexpr static auto remoteProtocolVersion{"!HC#"sv};
 constexpr static auto remoteSPIBegin{"!sB" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIEnd{"!sE" REMOTE_UINT8 "#"sv};
+constexpr static auto remoteSPIChipID{"!sI" REMOTE_UINT8 REMOTE_UINT8 "#"sv};
 
 std::string bmp_t::init() const
 {
@@ -74,4 +75,22 @@ bool bmp_t::end() noexcept
 		spiDevice = spiDevice_t::none;
 	}
 	return response[0] == remoteResponseOK;
+}
+
+spiFlashID_t bmp_t::identifyFlash() const
+{
+	const auto request{fmt::format(remoteSPIChipID, uint8_t(spiBus), uint8_t(spiDevice))};
+	writePacket(request);
+	const auto response{readPacket()};
+	if (response[0] != remoteResponseOK)
+		throw bmpCommsError_t{};
+	const auto chipID{std::string_view{response}.substr(1U)};
+	if (chipID.length() != 7U)
+		return {};
+	const toInt_t<uint8_t> manufacturer{chipID.data() + 0U, 2U};
+	const toInt_t<uint8_t> type{chipID.data() + 2U, 2U};
+	const toInt_t<uint8_t> capacity{chipID.data() + 4U, 2U};
+	if (!manufacturer.isHex() || !type.isHex()|| !capacity.isHex())
+		throw std::domain_error{"chip ID value is not a set of hex numbers"s};
+	return {manufacturer.fromHex(), type.fromHex(), capacity.fromHex()};
 }
