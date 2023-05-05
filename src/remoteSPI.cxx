@@ -45,7 +45,7 @@ uint64_t bmp_t::readProtocolVersion() const
 	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
 	const auto versionString{std::string_view{response}.substr(1U)};
-	toInt_t<uint64_t> version{versionString.data(), versionString.length() - 1U};
+	const toInt_t<uint64_t> version{versionString.data(), versionString.length() - 1U};
 	if (!version.isHex())
 		throw std::domain_error{"version value is not a hex number"s};
 	return version.fromHex();
