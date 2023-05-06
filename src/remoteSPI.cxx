@@ -5,11 +5,14 @@
 #include <string_view>
 #include <fmt/format.h>
 #include <substrate/conversions>
+#include <substrate/span>
+#include <substrate/index_sequence>
 #include "bmp.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 using substrate::toInt_t;
+using substrate::indexSequence_t;
 
 constexpr static auto remoteResponseOK{'K'};
 constexpr static auto remoteResponseParameterError{'P'};
@@ -23,6 +26,27 @@ constexpr static auto remoteProtocolVersion{"!HC#"sv};
 constexpr static auto remoteSPIBegin{"!sB" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIEnd{"!sE" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIChipID{"!sI" REMOTE_UINT8 REMOTE_UINT8 "#"sv};
+
+bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
+{
+	// If the ratio of data in to out is incorrect, fail early
+	if (dataIn.size_bytes() != dataOut.size_bytes() * 2U)
+		return false;
+	// Then iterate over the data to convert
+	for (const auto offset : indexSequence_t{dataOut.size_bytes()})
+	{
+		// Convert a byte worth
+		const toInt_t<uint8_t> value{dataIn.data() + (offset * 2U), 2U};
+		if (!value.isHex())
+			return false;
+		// Then store the result
+		dataOut[offset] = value.fromHex();
+	}
+	return true;
+}
+
+template<typename T> bool fromHex(const substrate::span<const char> &dataIn, T &result) noexcept
+	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(&result), sizeof(T)}); }
 
 std::string bmp_t::init() const
 {
@@ -87,10 +111,8 @@ spiFlashID_t bmp_t::identifyFlash() const
 	const auto chipID{std::string_view{response}.substr(1U)};
 	if (chipID.length() != 7U)
 		return {};
-	const toInt_t<uint8_t> manufacturer{chipID.data() + 0U, 2U};
-	const toInt_t<uint8_t> type{chipID.data() + 2U, 2U};
-	const toInt_t<uint8_t> capacity{chipID.data() + 4U, 2U};
-	if (!manufacturer.isHex() || !type.isHex()|| !capacity.isHex())
+	spiFlashID_t result{};
+	if (!fromHex(chipID, result))
 		throw std::domain_error{"chip ID value is not a set of hex numbers"s};
-	return {manufacturer.fromHex(), type.fromHex(), capacity.fromHex()};
+	return result;
 }
