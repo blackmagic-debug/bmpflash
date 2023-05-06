@@ -80,7 +80,7 @@ using substrate::indexedIterator_t;
 std::string_view lookupFlashVendor(const uint8_t manufacturer) noexcept
 {
 	const auto vendor{flashVendors.find(manufacturer)};
-	if (vendor == flashVendors.end())
+	if (vendor == flashVendors.cend())
 		return "<Unknown>"sv;
 	return vendor->second;
 }
