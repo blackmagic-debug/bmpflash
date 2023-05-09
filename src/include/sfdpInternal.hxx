@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <array>
 
-namespace sfdp
+namespace bmpflash::sfdp
 {
 	enum struct accessProtocol_t : uint8_t
 	{
@@ -168,6 +168,6 @@ namespace sfdp
 	static_assert(sizeof(timingsAndOpcode_t) == 2);
 	static_assert(sizeof(programmingAndChipEraseTiming_t) == 4);
 	static_assert(sizeof(basicParameterTable_t) == 64);
-} // namespace sfdp
+} // namespace bmpflash::sfdp
 
 #endif /*SFDP_INTERNAL_HXX*/

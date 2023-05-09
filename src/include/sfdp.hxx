@@ -4,9 +4,9 @@
 
 #include "bmp.hxx"
 
-namespace sfdp
+namespace bmpflash::sfdp
 {
 	bool readAndDisplay(const bmp_t &probe);
-} // namespace sfdp
+} // namespace bmpflash::sfdp
 
 #endif /*SFDP_HXX*/

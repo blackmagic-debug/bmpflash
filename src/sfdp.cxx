@@ -16,7 +16,7 @@ using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
 using bmpflash::utils::humanReadableSize;
 
-namespace sfdp
+namespace bmpflash::sfdp
 {
 	constexpr static uint32_t sfdpHeaderAddress{0U};
 	constexpr static uint32_t tableHeaderAddress{sizeof(sfdpHeader_t)};
@@ -107,4 +107,4 @@ namespace sfdp
 		}
 		return true;
 	}
-} // namespace sfdp
+} // namespace bmpflash::sfdp
