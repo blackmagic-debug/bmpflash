@@ -4,9 +4,11 @@
 #ifndef USB_CONTEXT_HXX
 #define USB_CONTEXT_HXX
 
+#ifndef __STDC_VERSION__
 // Horrible hack to make libusb conformant and not do stupid things.
 // NOLINTNEXTLINE(bugprone-reserved-identifier,cppcoreguidelines-macro-usage,cert-dcl37-c,cert-dcl51-cpp)
 #define __STDC_VERSION__ 199901L
+#endif
 
 #include <string_view>
 #ifdef __GNUC__
