@@ -8,6 +8,7 @@
 #include <string_view>
 #include <exception>
 #include "usbDevice.hxx"
+#include "spiFlash.hxx"
 
 struct bmpCommsError_t final : std::exception
 {
@@ -28,13 +29,6 @@ enum class spiBus_t : uint8_t
 	external = 0,
 	internal = 1,
 	none = 255,
-};
-
-struct spiFlashID_t
-{
-	uint8_t manufacturer;
-	uint8_t type;
-	uint8_t capacity;
 };
 
 // This represents a connection to a Black Magic Probe and all the information
