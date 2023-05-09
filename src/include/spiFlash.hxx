@@ -7,15 +7,15 @@
 #include <cstdint>
 #include <cstddef>
 
-struct spiFlashID_t
-{
-	uint8_t manufacturer;
-	uint8_t type;
-	uint8_t capacity;
-};
-
 namespace bmpflash::spiFlash
 {
+	struct jedecID_t
+	{
+		uint8_t manufacturer;
+		uint8_t type;
+		uint8_t capacity;
+	};
+
 	enum class opcodes_t : uint8_t
 	{
 		omitted = 0x00U,

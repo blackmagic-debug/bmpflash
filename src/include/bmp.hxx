@@ -31,6 +31,8 @@ enum class spiBus_t : uint8_t
 	none = 255,
 };
 
+using spiFlashID_t = bmpflash::spiFlash::jedecID_t;
+
 // This represents a connection to a Black Magic Probe and all the information
 // needed to communicate with its GDB serial port
 struct bmp_t final
