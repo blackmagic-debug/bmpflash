@@ -30,8 +30,8 @@ constexpr static auto remoteSPIChipID{"!sI" REMOTE_UINT8 REMOTE_UINT8 "#"sv};
 bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
 {
 	// If the ratio of data in to out is incorrect, fail early
-	if (dataIn.size_bytes() != dataOut.size_bytes() * 2U)
-		return false;
+	if (dataIn.size_bytes() < dataOut.size_bytes() * 2U)
+		return false; // NOLINT(readability-simplify-boolean-expr)
 	// Then iterate over the data to convert
 	for (const auto offset : indexSequence_t{dataOut.size_bytes()})
 	{
