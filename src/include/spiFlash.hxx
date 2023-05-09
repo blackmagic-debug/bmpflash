@@ -64,20 +64,16 @@ namespace bmpflash::spiFlash
 			const opcodes_t opcode) noexcept
 		{ return spiCommand(opcodeMode, dataMode_t::dataIn, dummyCycles, opcode); }
 
-	namespace commands
+	enum class commands_t : uint16_t
 	{
-		constexpr inline auto writeEnable{spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::writeEnable)};
-		constexpr inline auto pageProgram
-			{spiCommand(opcodeMode_t::with3BAddress, dataMode_t::dataOut, 0U, opcodes_t::pageWrite)};
-		constexpr inline auto sectorErase{spiCommand(opcodeMode_t::with3BAddress, 0U, opcodes_t::omitted)};
-		constexpr inline auto chipErase{spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::chipErase)};
-		constexpr inline auto readStatus
-			{spiCommand(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcodes_t::statusRead)};
-		constexpr inline auto readJEDECID
-			{spiCommand(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcodes_t::jedecID)};
-		constexpr inline auto readSFDP
-			{spiCommand(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 8U, opcodes_t::readSFDP)};
-		constexpr inline auto wakeUp{spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::wakeUp)};
+		writeEnable = spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::writeEnable),
+		pageProgram = spiCommand(opcodeMode_t::with3BAddress, dataMode_t::dataOut, 0U, opcodes_t::pageWrite),
+		sectorErase = spiCommand(opcodeMode_t::with3BAddress, 0U, opcodes_t::omitted),
+		chipErase = spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::chipErase),
+		readStatus = spiCommand(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcodes_t::statusRead),
+		readJEDECID = spiCommand(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcodes_t::jedecID),
+		readSFDP = spiCommand(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 8U, opcodes_t::readSFDP),
+		wakeUp = spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::wakeUp),
 	};
 } // namespace bmpflash::spiFlash
 
