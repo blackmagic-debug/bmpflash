@@ -54,15 +54,15 @@ namespace bmpflash::spiFlash
 	constexpr inline uint16_t dataModeMask{0x1000U};
 
 	constexpr inline uint16_t command(const opcodeMode_t opcodeMode, const dataMode_t dataMode,
-		const uint8_t dummyCycles, const opcode_t opcode) noexcept
+		const uint8_t dummyBytes, const opcode_t opcode) noexcept
 	{
 		return uint16_t(uint16_t(opcodeMode) | uint16_t(dataMode) |
-			((uint16_t{dummyCycles} << dummyShift) & dummyMask) | uint8_t(opcode));
+			((uint16_t{dummyBytes} << dummyShift) & dummyMask) | uint8_t(opcode));
 	}
 
-	constexpr inline uint16_t command(const opcodeMode_t opcodeMode, const uint8_t dummyCycles,
+	constexpr inline uint16_t command(const opcodeMode_t opcodeMode, const uint8_t dummyBytes,
 			const opcode_t opcode) noexcept
-		{ return command(opcodeMode, dataMode_t::dataIn, dummyCycles, opcode); }
+		{ return command(opcodeMode, dataMode_t::dataIn, dummyBytes, opcode); }
 
 	enum class command_t : uint16_t
 	{
@@ -72,7 +72,7 @@ namespace bmpflash::spiFlash
 		chipErase = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::chipErase),
 		readStatus = command(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcode_t::statusRead),
 		readJEDECID = command(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcode_t::jedecID),
-		readSFDP = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 8U, opcode_t::readSFDP),
+		readSFDP = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 1U, opcode_t::readSFDP),
 		wakeUp = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::wakeUp),
 	};
 } // namespace bmpflash::spiFlash
