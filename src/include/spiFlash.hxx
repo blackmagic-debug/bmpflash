@@ -56,8 +56,8 @@ namespace bmpflash::spiFlash
 	constexpr inline uint16_t spiCommand(const opcodeMode_t opcodeMode, const dataMode_t dataMode,
 		const uint8_t dummyCycles, const opcodes_t opcode) noexcept
 	{
-		return uint16_t(opcodeMode) | uint16_t(dataMode) | ((uint16_t{dummyCycles} << dummyShift) & dummyMask) |
-			uint8_t(opcode);
+		return uint16_t(uint16_t(opcodeMode) | uint16_t(dataMode) |
+			((uint16_t{dummyCycles} << dummyShift) & dummyMask) | uint8_t(opcode));
 	}
 
 	constexpr inline uint16_t spiCommand(const opcodeMode_t opcodeMode, const uint8_t dummyCycles,
