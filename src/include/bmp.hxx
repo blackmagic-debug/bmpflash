@@ -32,6 +32,7 @@ enum class spiBus_t : uint8_t
 };
 
 using spiFlashID_t = bmpflash::spiFlash::jedecID_t;
+using spiFlashCommand_t = bmpflash::spiFlash::commands_t;
 
 // This represents a connection to a Black Magic Probe and all the information
 // needed to communicate with its GDB serial port
@@ -60,6 +61,7 @@ public:
 	[[nodiscard]] bool begin(spiBus_t bus, spiDevice_t device) noexcept;
 	[[nodiscard]] bool end() noexcept;
 	[[nodiscard]] spiFlashID_t identifyFlash() const;
+	[[nodiscard]] bool read(spiFlashCommand_t command, uint32_t address, void *data, size_t dataLength) const;
 };
 
 #endif /*BMP_HXX*/

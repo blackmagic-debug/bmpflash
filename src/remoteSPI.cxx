@@ -19,13 +19,16 @@ constexpr static auto remoteResponseParameterError{'P'};
 constexpr static auto remoteResponseError{'E'};
 constexpr static auto remoteResponseNotSupported{'N'};
 
-#define REMOTE_UINT8 "{:02x}"
+#define REMOTE_UINT8  "{:02x}"
+#define REMOTE_UINT16 "{:04x}"
+#define REMOTE_UINT24 "{:06x}"
 
 constexpr static auto remoteInit{"+#!GA#"sv};
 constexpr static auto remoteProtocolVersion{"!HC#"sv};
 constexpr static auto remoteSPIBegin{"!sB" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIEnd{"!sE" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIChipID{"!sI" REMOTE_UINT8 REMOTE_UINT8 "#"sv};
+constexpr static auto remoteSPIRead{"!sr" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 REMOTE_UINT16 "#"sv};
 
 bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
 {
@@ -47,6 +50,8 @@ bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint
 
 template<typename T> bool fromHex(const substrate::span<const char> &dataIn, T &result) noexcept
 	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(&result), sizeof(T)}); }
+bool fromHex(const substrate::span<const char> &dataIn, void *result, const size_t resultLength) noexcept
+	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(result), resultLength}); }
 
 std::string bmp_t::init() const
 {
@@ -115,4 +120,27 @@ spiFlashID_t bmp_t::identifyFlash() const
 	if (!fromHex(chipID, result))
 		throw std::domain_error{"chip ID value is not a set of hex numbers"s};
 	return result;
+}
+
+bool bmp_t::read(const spiFlashCommand_t command, const uint32_t address, void *const data,
+	const size_t dataLength) const
+{
+	// XXX: Implement read chunking!
+	if (dataLength > UINT16_MAX)
+		return false;
+
+	const auto request{fmt::format(remoteSPIRead, uint8_t(spiBus), uint8_t(spiDevice), uint16_t(command),
+		address & 0x00ffffffU, dataLength)};
+	writePacket(request);
+	const auto response{readPacket()};
+	// Check if the probe told us we asked for too big a read
+	if (response[0] == remoteResponseParameterError)
+		return false;
+	// Check for any other errors
+	if (response[0] != remoteResponseOK)
+		throw bmpCommsError_t{};
+	const auto resultData{std::string_view{response}.substr(1U)};
+	if (!fromHex(resultData, data, dataLength))
+		throw std::domain_error{"SPI read data is not properly hex encoded"s};
+	return true;
 }
