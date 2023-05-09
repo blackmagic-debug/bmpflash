@@ -16,7 +16,7 @@ namespace bmpflash::spiFlash
 		uint8_t capacity;
 	};
 
-	enum class opcodes_t : uint8_t
+	enum class opcode_t : uint8_t
 	{
 		omitted = 0x00U,
 		jedecID = 0x9fU,
@@ -53,27 +53,27 @@ namespace bmpflash::spiFlash
 	constexpr inline uint16_t opcodeModeMask{0x0800U};
 	constexpr inline uint16_t dataModeMask{0x1000U};
 
-	constexpr inline uint16_t spiCommand(const opcodeMode_t opcodeMode, const dataMode_t dataMode,
-		const uint8_t dummyCycles, const opcodes_t opcode) noexcept
+	constexpr inline uint16_t command(const opcodeMode_t opcodeMode, const dataMode_t dataMode,
+		const uint8_t dummyCycles, const opcode_t opcode) noexcept
 	{
 		return uint16_t(uint16_t(opcodeMode) | uint16_t(dataMode) |
 			((uint16_t{dummyCycles} << dummyShift) & dummyMask) | uint8_t(opcode));
 	}
 
-	constexpr inline uint16_t spiCommand(const opcodeMode_t opcodeMode, const uint8_t dummyCycles,
-			const opcodes_t opcode) noexcept
-		{ return spiCommand(opcodeMode, dataMode_t::dataIn, dummyCycles, opcode); }
+	constexpr inline uint16_t command(const opcodeMode_t opcodeMode, const uint8_t dummyCycles,
+			const opcode_t opcode) noexcept
+		{ return command(opcodeMode, dataMode_t::dataIn, dummyCycles, opcode); }
 
-	enum class commands_t : uint16_t
+	enum class command_t : uint16_t
 	{
-		writeEnable = spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::writeEnable),
-		pageProgram = spiCommand(opcodeMode_t::with3BAddress, dataMode_t::dataOut, 0U, opcodes_t::pageWrite),
-		sectorErase = spiCommand(opcodeMode_t::with3BAddress, 0U, opcodes_t::omitted),
-		chipErase = spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::chipErase),
-		readStatus = spiCommand(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcodes_t::statusRead),
-		readJEDECID = spiCommand(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcodes_t::jedecID),
-		readSFDP = spiCommand(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 8U, opcodes_t::readSFDP),
-		wakeUp = spiCommand(opcodeMode_t::opcodeOnly, 0U, opcodes_t::wakeUp),
+		writeEnable = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::writeEnable),
+		pageProgram = command(opcodeMode_t::with3BAddress, dataMode_t::dataOut, 0U, opcode_t::pageWrite),
+		sectorErase = command(opcodeMode_t::with3BAddress, 0U, opcode_t::omitted),
+		chipErase = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::chipErase),
+		readStatus = command(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcode_t::statusRead),
+		readJEDECID = command(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcode_t::jedecID),
+		readSFDP = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 8U, opcode_t::readSFDP),
+		wakeUp = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::wakeUp),
 	};
 } // namespace bmpflash::spiFlash
 
