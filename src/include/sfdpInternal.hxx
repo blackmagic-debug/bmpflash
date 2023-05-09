@@ -67,7 +67,7 @@ namespace bmpflash::sfdp
 	private:
 		[[nodiscard]] bool isExponential() const noexcept { return data[3] & 0x80U; }
 		[[nodiscard]] uint32_t value() const noexcept
-			{ return ((data[3] & 0x7FU) << 24U) | (data[2] << 16U) | (data[1] << 8U) | data[0]; }
+			{ return uint32_t((data[3] & 0x7fU) << 24U) | uint32_t(data[2] << 16U) | uint32_t(data[1] << 8U) | data[0]; }
 
 	public:
 		[[nodiscard]] size_t capacity() const noexcept
@@ -119,13 +119,13 @@ namespace bmpflash::sfdp
 		[[nodiscard]] uint8_t enterInstruction() const noexcept
 		{
 			const auto value{(uint16_t{data[2]} << 8U) | uint16_t{data[1]}};
-			return value >> 7U;
+			return uint8_t(value >> 7U);
 		}
 
 		[[nodiscard]] uint8_t exitInstruction() const noexcept
 		{
 			const auto value{(uint16_t{data[1]} << 8U) | uint16_t{data[0]}};
-			return value >> 7U;
+			return uint8_t(value >> 7U);
 		}
 	};
 
