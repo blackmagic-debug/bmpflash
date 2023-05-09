@@ -9,10 +9,12 @@
 #include "usbContext.hxx"
 #include "bmp.hxx"
 #include "flashVendors.hxx"
+#include "units.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 using substrate::indexedIterator_t;
+using bmpflash::utils::humanReadableSize;
 
 [[nodiscard]] auto findBMPs(const usbContext_t &context)
 {
@@ -103,7 +105,8 @@ bool handleActions(bmp_t &probe)
 	console.info("SPI Flash ID: ", asHex_t<2, '0'>{chipID.manufacturer}, ' ',
 		asHex_t<2, '0'>{chipID.type}, ' ', asHex_t<2, '0'>{chipID.capacity});
 	const auto flashSize{UINT32_C(1) << chipID.capacity};
-	console.info("Device is a "sv, flashSize / (1024 * 1024), "MiB device from "sv,
+	const auto [capacityValue, capacityUnits] = humanReadableSize(flashSize);
+	console.info("Device is a "sv, capacityValue, capacityUnits, " device from "sv,
 		lookupFlashVendor(chipID.manufacturer));
 
 	return probe.end();
