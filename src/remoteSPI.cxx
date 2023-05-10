@@ -12,6 +12,7 @@
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 using substrate::toInt_t;
+using substrate::fromInt;
 using substrate::indexSequence_t;
 
 constexpr static auto remoteResponseOK{'K'};
@@ -48,10 +49,29 @@ bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint
 	return true;
 }
 
+size_t toHexSpan(const substrate::span<const uint8_t> dataIn, substrate::span<char> &dataOut) noexcept
+{
+	// If the ratio of data in to out is incorrect, fail early
+	if (dataIn.size_bytes() * 2U > dataOut.size_bytes())
+		return 0U;
+	// Then iterate over the data to convert
+	for (const auto offset : indexSequence_t{dataIn.size_bytes()})
+	{
+		// Convert a byte worth
+		const auto value{fromInt(dataIn[offset])};
+		value.formatToHex(dataOut.subspan(offset * 2U, 2U), false);
+	}
+	// Return the number of chars in the dataOut span consumed by this
+	return dataIn.size_bytes() * 2U;
+}
+
 template<typename T> bool fromHex(const substrate::span<const char> &dataIn, T &result) noexcept
 	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(&result), sizeof(T)}); }
-bool fromHex(const substrate::span<const char> &dataIn, void *result, const size_t resultLength) noexcept
+bool fromHex(const substrate::span<const char> &dataIn, void *const result, const size_t resultLength) noexcept
 	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(result), resultLength}); }
+
+size_t toHex(const void *const buffer, const size_t bufferLength, substrate::span<char> dataOut) noexcept
+	{ return toHexSpan({reinterpret_cast<const uint8_t *>(buffer), bufferLength}, dataOut); }
 
 std::string bmp_t::init() const
 {
