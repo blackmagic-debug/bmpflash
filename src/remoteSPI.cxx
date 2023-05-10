@@ -30,6 +30,7 @@ constexpr static auto remoteSPIBegin{"!sB" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIEnd{"!sE" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIChipID{"!sI" REMOTE_UINT8 REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIRead{"!sr" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 REMOTE_UINT16 "#"sv};
+constexpr static auto remoteSPIWrite{"!sw" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 REMOTE_UINT16 ""sv};
 
 bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
 {
@@ -162,5 +163,28 @@ bool bmp_t::read(const spiFlashCommand_t command, const uint32_t address, void *
 	const auto resultData{std::string_view{response}.substr(1U)};
 	if (!fromHex(resultData, data, dataLength))
 		throw std::domain_error{"SPI read data is not properly hex encoded"s};
+	return true;
+}
+
+bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const void *const data,
+	const size_t dataLength) const
+{
+	// XXX: Implement write chunking!
+	if (dataLength > UINT16_MAX)
+		return false;
+
+	std::array<char, maxPacketSize + 1U> request{};
+	auto offset = static_cast<size_t>(fmt::format_to(request.begin(), remoteSPIWrite, uint8_t(spiBus),
+		uint8_t(spiDevice), uint16_t(command), address & 0x00ffffffU, dataLength) - request.begin());
+	offset += toHex(data, dataLength, substrate::span{request}.subspan(offset, maxPacketSize - offset));
+	request[offset] = '#';
+	writePacket({request.data()});
+	const auto response{readPacket()};
+	// Check if the probe told us we asked for too big a read
+	if (response[0] == remoteResponseParameterError)
+		return false;
+	// Check for any other errors
+	if (response[0] != remoteResponseOK)
+		throw bmpCommsError_t{};
 	return true;
 }

@@ -62,6 +62,7 @@ public:
 	[[nodiscard]] bool end() noexcept;
 	[[nodiscard]] spiFlashID_t identifyFlash() const;
 	[[nodiscard]] bool read(spiFlashCommand_t command, uint32_t address, void *data, size_t dataLength) const;
+	[[nodiscard]] bool write(spiFlashCommand_t command, uint32_t address, const void *data, size_t dataLength) const;
 };
 
 #endif /*BMP_HXX*/
