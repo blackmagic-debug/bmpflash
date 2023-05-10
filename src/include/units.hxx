@@ -10,7 +10,7 @@ namespace bmpflash::utils
 {
 	using namespace std::literals::string_view_literals;
 
-	inline std::tuple<uint32_t, std::string_view> humanReadableSize(uint32_t size)
+	inline std::tuple<size_t, std::string_view> humanReadableSize(size_t size)
 	{
 		if (size < 1024U)
 			return {size, "B"sv};
