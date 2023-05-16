@@ -11,6 +11,29 @@ namespace bmpflash
 	using namespace std::literals::string_view_literals;
 	using namespace substrate::commandLine;
 
+	constexpr static auto serialOption
+	{
+		option_t
+		{
+			optionFlagPair_t{"-s"sv, "--serial"sv},
+			"Use the BMP with the given, possibly partial, matching serial number"sv
+		}.takesParameter(optionValueType_t::string)
+	};
+
+	constexpr static auto probeOptions{options(serialOption)};
+
+	constexpr static auto actions
+	{
+		optionAlternations
+		({
+			{
+				"info"sv,
+				"Display information about attached Black Magic Probes"sv,
+				probeOptions,
+			}
+		})
+	};
+
 	constexpr static auto programOptions
 	{
 		options
@@ -18,7 +41,8 @@ namespace bmpflash
 			option_t{optionFlagPair_t{"-h"sv, "--help"sv}, "Display this help message and exit"sv},
 			option_t{"--version"sv, "Display the program version information and exit"sv},
 			option_t{optionFlagPair_t{"-v"sv, "--verbosity"sv}, "Set the program output verbosity"sv}
-				.takesParameter(optionValueType_t::unsignedInt)
+				.takesParameter(optionValueType_t::unsignedInt),
+			optionSet_t{"action"sv, actions}
 		)
 	};
 } // namespace bmpflash
