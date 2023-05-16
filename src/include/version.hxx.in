@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
+// SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+@AUTOGEN_HEADER@
+#ifndef VERSION_HXX
+#define VERSION_HXX
+
+#include <string_view>
+#include <substrate/console>
+
+namespace bmpflash::versionInfo
+{
+	using namespace std::literals::string_view_literals;
+	using substrate::console;
+
+	constexpr static auto version{"@VERSION@"sv};
+	constexpr static auto compiler{"@COMPILER@"sv};
+	constexpr static auto compilerVersion{"@COMPILER_VERSION@"sv};
+	constexpr static auto system{"@TARGET_SYSTEM@"sv};
+	constexpr static auto arch{"@TARGET_ARCH@"sv};
+
+	inline void displayVersion() noexcept
+		{ console.info("bmpflash "sv, version, " ("sv, compiler, ' ', compilerVersion, ' ', system, '-', arch, ')'); }
+} // namespace bmpflash::versionInfo
+
+namespace bmpflash
+{
+	using bmpflash::versionInfo::displayVersion;
+}
+
+#endif /*VERSION_HXX*/
