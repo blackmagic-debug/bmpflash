@@ -39,6 +39,15 @@ namespace bmpflash
 		}.takesParameter(optionValueType_t::string)
 	};
 
+	constexpr static auto fileOption
+	{
+		option_t
+		{
+			optionValue_t{"fileName"sv},
+			"Use the given file name (including path relative to your working directory) for the operation"sv
+		}.takesParameter(optionValueType_t::path)
+	};
+
 	constexpr static auto probeOptions{options(serialOption)};
 
 	constexpr static auto deviceOptions
@@ -55,6 +64,8 @@ namespace bmpflash
 		)
 	};
 
+	constexpr static auto provisioningOptions{options(serialOption, fileOption)};
+
 	constexpr static auto actions
 	{
 		optionAlternations
@@ -68,6 +79,11 @@ namespace bmpflash
 				"sfdp"sv,
 				"Display the SFDP (Serial Flash Discoverable Parameters) information for a Flash chip"sv,
 				deviceOptions,
+			},
+			{
+				"provision"sv,
+				"Provision a BMP's on-board Flash for use with the auto-programming command in standalone mode"sv,
+				provisioningOptions,
 			},
 		})
 	};
