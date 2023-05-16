@@ -4,12 +4,31 @@
 #ifndef OPTIONS_HXX
 #define OPTIONS_HXX
 
+#include <substrate/console>
 #include <substrate/command_line/options>
 
 namespace bmpflash
 {
 	using namespace std::literals::string_view_literals;
+	using substrate::console;
 	using namespace substrate::commandLine;
+
+	enum class bus_t
+	{
+		internal,
+		external,
+	};
+
+	static inline std::optional<std::any> busSelectionParser(const std::string_view &value) noexcept
+	{
+		if (value == "int"sv || value == "internal"sv)
+			return bus_t::internal;
+		if (value == "ext"sv || value == "external"sv)
+			return bus_t::external;
+		console.error("Invalid value for --bus given, got '"sv, value, "', expecting one of 'int'/'internal' "
+			"or 'ext'/'external'"sv);
+		return std::nullopt;
+	}
 
 	constexpr static auto serialOption
 	{
@@ -22,6 +41,20 @@ namespace bmpflash
 
 	constexpr static auto probeOptions{options(serialOption)};
 
+	constexpr static auto deviceOptions
+	{
+		options
+		(
+			serialOption,
+			option_t
+			{
+				optionFlagPair_t{"-b"sv, "--bus"sv},
+				"Which of the internal (on-board) or external (debug connector attached)\n"
+				"busses to use. Specified by giving either 'int' or 'ext'"sv,
+			}.takesParameter(optionValueType_t::userDefined, busSelectionParser).required()
+		)
+	};
+
 	constexpr static auto actions
 	{
 		optionAlternations
@@ -30,7 +63,12 @@ namespace bmpflash
 				"info"sv,
 				"Display information about attached Black Magic Probes"sv,
 				probeOptions,
-			}
+			},
+			{
+				"sfdp"sv,
+				"Display the SFDP (Serial Flash Discoverable Parameters) information for a Flash chip"sv,
+				deviceOptions,
+			},
 		})
 	};
 
