@@ -12,6 +12,7 @@
 #include "flashVendors.hxx"
 #include "units.hxx"
 #include "options.hxx"
+#include "version.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
@@ -122,6 +123,7 @@ int main(const int argCount, const char *const *const argList)
 {
 	console = {stdout, stderr};
 
+	// Try to parser the command line arguments
 	if (const auto result{parseArguments(static_cast<size_t>(argCount), argList, bmpflash::programOptions)}; !result)
 	{
 		console.error("Failed to parse command line arguments"sv);
@@ -129,6 +131,26 @@ int main(const int argCount, const char *const *const argList)
 	}
 	else // NOLINT(readability-else-after-return)
 		args = *result;
+
+	// Handle the version and help options first
+	const auto *const version{args["version"sv]};
+	const auto *const help{args["help"sv]};
+	if (version && help)
+	{
+		console.error("Can only specify one of --help and --version, not both."sv);
+		return 1;
+	}
+	if (version)
+	{
+		bmpflash::displayVersion();
+		return 0;
+	}
+	// Display the help if requested or there were no command line options given
+	if (help || args.count() == 0U)
+	{
+		// bmpflash::displayHelp();
+		return 0;
+	}
 
 	const usbContext_t context{};
 	if (!context.valid())
