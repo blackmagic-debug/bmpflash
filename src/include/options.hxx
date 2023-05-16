@@ -45,7 +45,7 @@ namespace bmpflash
 		{
 			optionValue_t{"fileName"sv},
 			"Use the given file name (including path relative to your working directory) for the operation"sv
-		}.takesParameter(optionValueType_t::path)
+		}.takesParameter(optionValueType_t::path).required()
 	};
 
 	constexpr static auto probeOptions{options(serialOption)};
@@ -65,6 +65,7 @@ namespace bmpflash
 	};
 
 	constexpr static auto provisioningOptions{options(serialOption, fileOption)};
+	constexpr static auto generalFlashOptions{options(deviceOptions, fileOption)};
 
 	constexpr static auto actions
 	{
@@ -84,6 +85,16 @@ namespace bmpflash
 				"provision"sv,
 				"Provision a BMP's on-board Flash for use with the auto-programming command in standalone mode"sv,
 				provisioningOptions,
+			},
+			{
+				"read"sv,
+				"Read the contents of a Flash chip into the file specified"sv,
+				generalFlashOptions,
+			},
+			{
+				"write"sv,
+				"Write the contents of the file specified into a Flash chip"sv,
+				generalFlashOptions,
 			},
 		})
 	};
