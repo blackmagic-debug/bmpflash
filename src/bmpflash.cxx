@@ -6,15 +6,21 @@
 #include <string>
 #include <substrate/indexed_iterator>
 #include <substrate/console>
+#include <substrate/command_line/arguments>
 #include "usbContext.hxx"
 #include "bmp.hxx"
 #include "flashVendors.hxx"
 #include "units.hxx"
+#include "options.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 using substrate::indexedIterator_t;
 using bmpflash::utils::humanReadableSize;
+using substrate::commandLine::arguments_t;
+using substrate::commandLine::parseArguments;
+
+arguments_t args{};
 
 [[nodiscard]] auto findBMPs(const usbContext_t &context)
 {
@@ -112,9 +118,17 @@ bool handleActions(bmp_t &probe)
 	return probe.end();
 }
 
-int main(int, char **)
+int main(const int argCount, const char *const *const argList)
 {
 	console = {stdout, stderr};
+
+	if (const auto result{parseArguments(static_cast<size_t>(argCount), argList, bmpflash::programOptions)}; !result)
+	{
+		console.error("Failed to parse command line arguments"sv);
+		return 1;
+	}
+	else // NOLINT(readability-else-after-return)
+		args = *result;
 
 	const usbContext_t context{};
 	if (!context.valid())
