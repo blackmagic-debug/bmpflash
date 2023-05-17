@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
+// SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+
+#include <cstdint>
+#include <vector>
+#include <optional>
+#include <string_view>
+#include <substrate/command_line/arguments>
+#include "usbDevice.hxx"
+
+namespace bmpflash
+{
+	using substrate::commandLine::arguments_t;
+	using substrate::commandLine::flag_t;
+	using substrate::commandLine::choice_t;
+
+	[[nodiscard]] std::optional<usbDevice_t> filterDevices(const std::vector<usbDevice_t> &devices,
+		std::optional<std::string_view> deviceSerialNumber) noexcept;
+	int32_t displayInfo(const std::vector<usbDevice_t> &devices, const arguments_t &infoArguments);
+} // namespace bmpflash
