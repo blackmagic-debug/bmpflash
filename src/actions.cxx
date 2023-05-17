@@ -50,7 +50,20 @@ namespace bmpflash
 		return std::nullopt;
 	}
 
-	[[nodiscard]] std::optional<bmp_t> beginComms(const usbDevice_t &device)
+	[[nodiscard]] spiDevice_t busToDevice(const spiBus_t &bus)
+	{
+		switch (bus)
+		{
+			case spiBus_t::internal:
+				return spiDevice_t::intFlash;
+			case spiBus_t::external:
+				return spiDevice_t::extFlash;
+			default:
+				throw std::domain_error{"SPI bus requested is unhandled or unknown"};
+		}
+	}
+
+	[[nodiscard]] std::optional<bmp_t> beginComms(const usbDevice_t &device, const flag_t &bus)
 	{
 		// Use the found device to then build the communications structure
 		bmp_t probe{device};
@@ -61,9 +74,13 @@ namespace bmpflash
 		const auto probeVersion{probe.init()};
 		console.info("Remote is "sv, probeVersion);
 
+		// Grab the bus to use and convert it to a device too
+		const auto spiBus{std::any_cast<spiBus_t>(bus.value())};
+		const auto spiDevice{busToDevice(spiBus)};
+
 		// Start by checking the BMP is running a new enough remote protocol
 		const auto protocolVersion{probe.readProtocolVersion()};
-		if (protocolVersion < 3U || !probe.begin(spiBus_t::internal, spiDevice_t::intFlash))
+		if (protocolVersion < 3U || !probe.begin(spiBus, spiDevice))
 		{
 			console.error("Probe is running firmware that is too old, please update it");
 			return std::nullopt;
@@ -145,7 +162,7 @@ namespace bmpflash
 
 	bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments)
 	{
-		auto probe{beginComms(device)};
+		auto probe{beginComms(device, std::get<flag_t>(*sfdpArguments["bus"sv]))};
 		if (!probe || !identifyFlash(*probe))
 			return false;
 
