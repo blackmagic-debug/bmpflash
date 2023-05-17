@@ -19,6 +19,8 @@ using namespace std::literals::string_view_literals;
 using substrate::indexedIterator_t;
 using bmpflash::utils::humanReadableSize;
 using substrate::commandLine::arguments_t;
+using substrate::commandLine::flag_t;
+using substrate::commandLine::choice_t;
 using substrate::commandLine::parseArguments;
 
 arguments_t args{};
@@ -54,6 +56,7 @@ arguments_t args{};
 			if (serialNumber == targetSerialNumber)
 				return device;
 		}
+		console.error("Failed to match devices based on serial number "sv, *deviceSerialNumber);
 	}
 
 	// Having checked for devices with a matching serial number, and failed, check if we've got just one device
@@ -119,6 +122,24 @@ bool handleActions(bmp_t &probe)
 	return probe.end();
 }
 
+namespace bmpflash
+{
+	int32_t displayInfo(const std::vector<usbDevice_t> &devices, const arguments_t &infoArguments) noexcept
+	{
+		// Check if the user's specified a specific serial number
+		const auto *const serial{infoArguments["serial"sv]};
+		if (serial)
+		{
+			// They did, so extract it and use it to filter the device list
+			const auto &serialNumber{std::any_cast<std::string_view>(std::get<flag_t>(*serial).value())};
+			const auto &device{filterDevices(devices, serialNumber)};
+			if (!device)
+				return 1;
+		}
+		return 0;
+	}
+} // namespace bmpflash
+
 int main(const int argCount, const char *const *const argList)
 {
 	console = {stdout, stderr};
@@ -152,6 +173,17 @@ int main(const int argCount, const char *const *const argList)
 		return 0;
 	}
 
+	// Try and discover what action the user's requested
+	const auto *const actionArg{args["action"sv]};
+	if (!actionArg)
+	{
+		console.error("Action to perform must be specified"sv);
+		// bmpflash::displayHelp();
+		return 1;
+	}
+	const auto &action{std::get<choice_t>(*actionArg)};
+
+	// Get a libusb context to perform everything in
 	const usbContext_t context{};
 	if (!context.valid())
 		return 2;
@@ -164,6 +196,10 @@ int main(const int argCount, const char *const *const argList)
 		console.warn("Are you sure the permissions on the device are set correctly?"sv);
 		return 1;
 	}
+	// if the user's asked us to dump the info on the attached devices, step into that and exit
+	if (action.value() == "info"sv)
+		return bmpflash::displayInfo(devices, action.arguments());
+
 	// Filter them to get just one device to work with
 	const auto device{filterDevices(devices, std::nullopt)};
 	if (!device)
