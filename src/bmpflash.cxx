@@ -17,6 +17,7 @@ using namespace std::literals::string_view_literals;
 using substrate::commandLine::arguments_t;
 using substrate::commandLine::flag_t;
 using substrate::commandLine::choice_t;
+using substrate::commandLine::item_t;
 using substrate::commandLine::parseArguments;
 
 arguments_t args{};
@@ -95,8 +96,17 @@ int main(const int argCount, const char *const *const argList)
 	if (action.value() == "info"sv)
 		return bmpflash::displayInfo(devices, action.arguments());
 
+	const auto serialNumber
+	{
+		[](const item_t *const serialArgument) -> std::optional<std::string_view>
+		{
+			if (!serialArgument)
+				return std::nullopt;
+			return std::any_cast<std::string_view>(std::get<flag_t>(*serialArgument).value());
+		}(action.arguments()["serial"sv])
+	};
 	// Filter them to get just one device to work with
-	const auto device{bmpflash::filterDevices(devices, std::nullopt)};
+	const auto device{bmpflash::filterDevices(devices, serialNumber)};
 	if (!device)
 		return 1;
 
