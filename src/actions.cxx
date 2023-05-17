@@ -6,6 +6,8 @@
 #include <substrate/indexed_iterator>
 #include <substrate/console>
 #include "actions.hxx"
+#include "flashVendors.hxx"
+#include "sfdp.hxx"
 #include "units.hxx"
 
 using namespace std::literals::string_literals;
@@ -17,7 +19,7 @@ namespace bmpflash
 {
 	void displayInfo(size_t idx, const usbDevice_t &device);
 
-	[[nodiscard]] std::optional<usbDevice_t> filterDevices(const std::vector<usbDevice_t> &devices,
+	std::optional<usbDevice_t> filterDevices(const std::vector<usbDevice_t> &devices,
 		std::optional<std::string_view> deviceSerialNumber) noexcept
 	{
 		if (deviceSerialNumber)
@@ -46,6 +48,56 @@ namespace bmpflash
 		for (const auto [idx, device] : indexedIterator_t{devices})
 			bmpflash::displayInfo(idx, device);
 		return std::nullopt;
+	}
+
+	[[nodiscard]] std::optional<bmp_t> beginComms(const usbDevice_t &device)
+	{
+		// Use the found device to then build the communications structure
+		bmp_t probe{device};
+		if (!probe.valid())
+			return std::nullopt;
+
+		// Initialise remote communications
+		const auto probeVersion{probe.init()};
+		console.info("Remote is "sv, probeVersion);
+
+		// Start by checking the BMP is running a new enough remote protocol
+		const auto protocolVersion{probe.readProtocolVersion()};
+		if (protocolVersion < 3U || !probe.begin(spiBus_t::internal, spiDevice_t::intFlash))
+		{
+			console.error("Probe is running firmware that is too old, please update it");
+			return std::nullopt;
+		}
+		return probe;
+	}
+
+	[[nodiscard]] std::string_view lookupFlashVendor(const uint8_t manufacturer) noexcept
+	{
+		// Look the Flash manufacturer up by MFR ID
+		const auto vendor{flashVendors.find(manufacturer)};
+		if (vendor == flashVendors.cend())
+			return "<Unknown>"sv;
+		return vendor->second;
+	}
+
+	bool identifyFlash(const bmp_t &probe) noexcept
+	{
+		const auto chipID{probe.identifyFlash()};
+		// If we got a bad all-highs read back, or the capacity is 0, then there's no device there.
+		if ((chipID.manufacturer == 0xffU && chipID.type == 0xffU && chipID.capacity == 0xffU) ||
+			chipID.capacity == 0U)
+		{
+			console.error("Could not identify a valid Flash device on the requested SPI bus"sv);
+			return false;
+		}
+		// Display some useful information about the Flash
+		console.info("SPI Flash ID: ", asHex_t<2, '0'>{chipID.manufacturer}, ' ',
+			asHex_t<2, '0'>{chipID.type}, ' ', asHex_t<2, '0'>{chipID.capacity});
+		const auto flashSize{UINT32_C(1) << chipID.capacity};
+		const auto [capacityValue, capacityUnits] = humanReadableSize(flashSize);
+		console.info("Device is a "sv, capacityValue, capacityUnits, " device from "sv,
+			lookupFlashVendor(chipID.manufacturer));
+		return true;
 	}
 
 	void displayInfo(const size_t idx, const usbDevice_t &device)
@@ -89,5 +141,15 @@ namespace bmpflash
 				displayInfo(idx, device);
 		}
 		return 0;
+	}
+
+	bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments)
+	{
+		auto probe{beginComms(device)};
+		if (!probe || !identifyFlash(*probe))
+			return false;
+
+		sfdp::readAndDisplay(*probe);
+		return probe->end();
 	}
 } // namespace bmpflash

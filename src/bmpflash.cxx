@@ -9,15 +9,11 @@
 #include <substrate/command_line/arguments>
 #include "usbContext.hxx"
 #include "bmp.hxx"
-#include "flashVendors.hxx"
-#include "units.hxx"
 #include "options.hxx"
 #include "actions.hxx"
 #include "version.hxx"
 
 using namespace std::literals::string_view_literals;
-using substrate::indexedIterator_t;
-using bmpflash::utils::humanReadableSize;
 using substrate::commandLine::arguments_t;
 using substrate::commandLine::flag_t;
 using substrate::commandLine::choice_t;
@@ -37,39 +33,6 @@ arguments_t args{};
 		}
 	}
 	return devices;
-}
-
-std::string_view lookupFlashVendor(const uint8_t manufacturer) noexcept
-{
-	const auto vendor{flashVendors.find(manufacturer)};
-	if (vendor == flashVendors.cend())
-		return "<Unknown>"sv;
-	return vendor->second;
-}
-
-bool handleActions(bmp_t &probe)
-{
-	// Initialise remote communications
-	const auto probeVersion{probe.init()};
-	console.info("Remote is "sv, probeVersion);
-
-	// Start by checking the BMP is running a new enough remote protocol
-	const auto protocolVersion{probe.readProtocolVersion()};
-	if (protocolVersion < 3U || !probe.begin(spiBus_t::internal, spiDevice_t::intFlash))
-	{
-		console.error("Probe is running firmware that is too old, please update it");
-		return false;
-	}
-
-	const auto chipID{probe.identifyFlash()};
-	console.info("SPI Flash ID: ", asHex_t<2, '0'>{chipID.manufacturer}, ' ',
-		asHex_t<2, '0'>{chipID.type}, ' ', asHex_t<2, '0'>{chipID.capacity});
-	const auto flashSize{UINT32_C(1) << chipID.capacity};
-	const auto [capacityValue, capacityUnits] = humanReadableSize(flashSize);
-	console.info("Device is a "sv, capacityValue, capacityUnits, " device from "sv,
-		lookupFlashVendor(chipID.manufacturer));
-
-	return probe.end();
 }
 
 int main(const int argCount, const char *const *const argList)
@@ -137,11 +100,18 @@ int main(const int argCount, const char *const *const argList)
 	if (!device)
 		return 1;
 
-	// Use the found device to then build the communications structure
-	bmp_t probe{*device};
-	if (!probe.valid())
-		return 1;
+	// Grab the result of trying to run the requested action
+	const auto result
+	{
+		[&]()
+		{
+			// Dispatch based on the requested action (info's already handled)
+			if (action.value() == "sfdp"sv)
+				return bmpflash::displaySFDP(*device, action.arguments());
+			return false;
+		}()
+	};
 
-	// Communicate with the BMP and perform whatever actions they've requested
-	return handleActions(probe) ? 0 : 1;
+	// Translate the boolean result into a success/fail value and finish up
+	return result ? 0 : 1;
 }

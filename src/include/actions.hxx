@@ -8,6 +8,7 @@
 #include <string_view>
 #include <substrate/command_line/arguments>
 #include "usbDevice.hxx"
+#include "bmp.hxx"
 
 namespace bmpflash
 {
@@ -17,5 +18,7 @@ namespace bmpflash
 
 	[[nodiscard]] std::optional<usbDevice_t> filterDevices(const std::vector<usbDevice_t> &devices,
 		std::optional<std::string_view> deviceSerialNumber) noexcept;
-	int32_t displayInfo(const std::vector<usbDevice_t> &devices, const arguments_t &infoArguments);
+	[[nodiscard]] int32_t displayInfo(const std::vector<usbDevice_t> &devices, const arguments_t &infoArguments);
+
+	[[nodiscard]] bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments);
 } // namespace bmpflash
