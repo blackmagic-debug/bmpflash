@@ -39,7 +39,7 @@ using spiFlashCommand_t = bmpflash::spiFlash::command_t;
 struct bmp_t final
 {
 private:
-	usbDeviceHandle_t device;
+	usbDeviceHandle_t device{};
 	uint8_t ctrlInterfaceNumber{UINT8_MAX};
 	uint8_t dataInterfaceNumber{UINT8_MAX};
 	uint8_t txEndpoint{};
@@ -48,13 +48,25 @@ private:
 	spiDevice_t spiDevice{spiDevice_t::none};
 	constexpr static size_t maxPacketSize{1024U};
 
+	bmp_t() noexcept = default;
 	void writePacket(const std::string_view &packet) const;
 	[[nodiscard]] std::string readPacket() const;
 
 public:
 	bmp_t(const usbDevice_t &usbDevice);
+	bmp_t(const bmp_t &) noexcept = delete;
+	bmp_t(bmp_t &&probe) noexcept : bmp_t{} { swap(probe); }
 	~bmp_t() noexcept;
+	bmp_t &operator =(const bmp_t &) noexcept = delete;
+
+	bmp_t &operator =(bmp_t &&probe) noexcept
+	{
+		swap(probe);
+		return *this;
+	}
+
 	[[nodiscard]] bool valid() const noexcept { return device.valid() && txEndpoint && rxEndpoint; }
+	void swap(bmp_t &probe) noexcept;
 
 	[[nodiscard]] std::string init() const;
 	[[nodiscard]] uint64_t readProtocolVersion() const;

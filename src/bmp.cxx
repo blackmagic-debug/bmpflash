@@ -168,6 +168,17 @@ bmp_t::~bmp_t() noexcept
 		static_cast<void>(device.releaseInterface(ctrlInterfaceNumber));
 }
 
+void bmp_t::swap(bmp_t &probe) noexcept
+{
+	std::swap(device, probe.device);
+	std::swap(ctrlInterfaceNumber, probe.ctrlInterfaceNumber);
+	std::swap(dataInterfaceNumber, probe.dataInterfaceNumber);
+	std::swap(txEndpoint, probe.txEndpoint);
+	std::swap(rxEndpoint, probe.rxEndpoint);
+	std::swap(spiBus, probe.spiBus);
+	std::swap(spiDevice, probe.spiDevice);
+}
+
 void bmp_t::writePacket(const std::string_view &packet) const
 {
 	console.debug("Remote write: "sv, packet);
