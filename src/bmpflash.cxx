@@ -39,6 +39,29 @@ arguments_t args{};
 	return devices;
 }
 
+namespace bmpflash
+{
+	void displayInfo(const size_t idx, const usbDevice_t &device)
+	{
+		const auto handle{device.open()};
+		// Read the 3 main string descriptors for the device
+		const auto manufacturer{handle.readStringDescriptor(device.manufacturerIndex())};
+		const auto product{handle.readStringDescriptor(device.productIndex())};
+		const auto serialNumber
+		{
+			[&]()
+			{
+				auto value{handle.readStringDescriptor(device.serialNumberIndex())};
+				if (value.empty())
+					return "<no serial number>"s;
+				return value;
+			}()
+		};
+
+		console.info(idx + 1U, ": "sv, serialNumber, ", "sv, manufacturer, ", "sv, product);
+	}
+} // namespace bmpflash
+
 [[nodiscard]] std::optional<usbDevice_t> filterDevices(const std::vector<usbDevice_t> &devices,
 	std::optional<std::string_view> deviceSerialNumber) noexcept
 {
@@ -66,26 +89,7 @@ arguments_t args{};
 	// Otherwise, we're done here, error.
 	console.error(devices.size(), " devices found, please use a serial number to select a specific one"sv);
 	for (const auto [idx, device] : indexedIterator_t{devices})
-	{
-		const auto handle{device.open()};
-		// Read the 3 main string descriptors for the device
-		const auto manufacturer{handle.readStringDescriptor(device.manufacturerIndex())};
-		const auto product{handle.readStringDescriptor(device.productIndex())};
-		const auto serialNumber
-		{
-			// This lambda takes device as a parameter because of our use of structured bindings
-			// (they're not allowed to be captured)
-			[&](const usbDevice_t &_device)
-			{
-				auto value{handle.readStringDescriptor(_device.serialNumberIndex())};
-				if (value.empty())
-					return "<no serial number>"s;
-				return value;
-			}(device)
-		};
-
-		console.info(idx + 1U, ": "sv, serialNumber, ", "sv, manufacturer, ", "sv, product);
-	}
+		bmpflash::displayInfo(idx, device);
 	return std::nullopt;
 }
 
@@ -135,6 +139,14 @@ namespace bmpflash
 			const auto &device{filterDevices(devices, serialNumber)};
 			if (!device)
 				return 1;
+			displayInfo(0, *device);
+		}
+		else
+		{
+			console.info(devices.size(), " devices found:"sv);
+			// Loop through all the devices, displaying their information
+			for (const auto [idx, device] : indexedIterator_t{devices})
+				displayInfo(idx, device);
 		}
 		return 0;
 	}
