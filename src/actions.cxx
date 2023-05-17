@@ -63,7 +63,7 @@ namespace bmpflash
 		}
 	}
 
-	[[nodiscard]] std::optional<bmp_t> beginComms(const usbDevice_t &device, const flag_t &bus)
+	[[nodiscard]] std::optional<bmp_t> beginComms(const usbDevice_t &device, const spiBus_t &spiBus)
 	{
 		// Use the found device to then build the communications structure
 		bmp_t probe{device};
@@ -74,8 +74,7 @@ namespace bmpflash
 		const auto probeVersion{probe.init()};
 		console.info("Remote is "sv, probeVersion);
 
-		// Grab the bus to use and convert it to a device too
-		const auto spiBus{std::any_cast<spiBus_t>(bus.value())};
+		// Convert the bus to use to a device too
 		const auto spiDevice{busToDevice(spiBus)};
 
 		// Start by checking the BMP is running a new enough remote protocol
@@ -87,6 +86,10 @@ namespace bmpflash
 		}
 		return probe;
 	}
+
+	// This allows feeding a flag_t in for the bus instead of a raw spiBus_t
+	[[nodiscard]] std::optional<bmp_t> beginComms(const usbDevice_t &device, const flag_t &bus)
+		{ return beginComms(device, std::any_cast<spiBus_t>(bus.value())); }
 
 	[[nodiscard]] std::string_view lookupFlashVendor(const uint8_t manufacturer) noexcept
 	{
