@@ -24,14 +24,14 @@ namespace bmpflash::sfdp
 	constexpr static std::array<char, 4> sfdpMagic{{'S', 'F', 'D', 'P'}};
 	constexpr static uint16_t basicSPIParameterTable{0xFF00U};
 
-	[[nodiscard]] static bool sfdpRead(const bmp_t &probe, const uint32_t address, void *const data,
+	[[nodiscard]] bool sfdpRead(const bmp_t &probe, const uint32_t address, void *const data,
 			const size_t dataLength)
 		{ return probe.read(spiFlashCommand_t::readSFDP, address, data, dataLength); }
 
-	template<typename T> [[nodiscard]] static bool sfdpRead(const bmp_t &probe, const uint32_t address, T &buffer)
+	template<typename T> [[nodiscard]] bool sfdpRead(const bmp_t &probe, const uint32_t address, T &buffer)
 			{ return sfdpRead(probe, address, &buffer, sizeof(T)); }
 
-	static void displayHeader(const sfdpHeader_t &header)
+	void displayHeader(const sfdpHeader_t &header)
 	{
 		console.info("SFDP Header:"sv);
 		console.info("-> magic '"sv, header.magic, "'"sv);
@@ -40,7 +40,7 @@ namespace bmpflash::sfdp
 		console.info("-> access protocol "sv, asHex_t<2, '0'>{uint8_t(header.accessProtocol)});
 	}
 
-	static void displayTableHeader(const parameterTableHeader_t &header, const size_t index)
+	void displayTableHeader(const parameterTableHeader_t &header, const size_t index)
 	{
 		console.info("Parameter table header "sv, index, ":"sv);
 		console.info("-> type "sv, asHex_t<4, '0'>{header.jedecParameterID()});
@@ -49,7 +49,7 @@ namespace bmpflash::sfdp
 		console.info("-> table SFDP address: "sv, uint32_t{header.tableAddress});
 	}
 
-	static bool displayBasicParameterTable(const bmp_t &probe, const uint32_t address, const size_t length)
+	[[nodiscard]] bool displayBasicParameterTable(const bmp_t &probe, const uint32_t address, const size_t length)
 	{
 		basicParameterTable_t parameterTable{};
 		if (!sfdpRead(probe, address, &parameterTable, std::min(sizeof(basicParameterTable_t), length)))
