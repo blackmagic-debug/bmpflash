@@ -19,6 +19,9 @@ namespace bmpflash
 {
 	void displayInfo(size_t idx, const usbDevice_t &device);
 
+	[[nodiscard]] inline bool contains(const std::string_view &searchIn, const std::string_view &searchFor) noexcept
+		{ return searchIn.find(searchFor) != std::string_view::npos; }
+
 	std::optional<usbDevice_t> filterDevices(const std::vector<usbDevice_t> &devices,
 		std::optional<std::string_view> deviceSerialNumber) noexcept
 	{
@@ -33,7 +36,7 @@ namespace bmpflash
 					continue;
 				const auto handle{device.open()};
 				const auto serialNumber{handle.readStringDescriptor(serialIndex)};
-				if (serialNumber == targetSerialNumber)
+				if (contains(serialNumber, targetSerialNumber))
 					return device;
 			}
 			console.error("Failed to match devices based on serial number "sv, *deviceSerialNumber);
