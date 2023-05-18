@@ -28,8 +28,8 @@ namespace bmpflash::sfdp
 			const size_t dataLength)
 		{ return probe.read(spiFlashCommand_t::readSFDP, address, data, dataLength); }
 
-	template<typename T> [[nodiscard]] bool sfdpRead(const bmp_t &probe, const uint32_t address, T &buffer)
-			{ return sfdpRead(probe, address, &buffer, sizeof(T)); }
+	template<typename T> [[nodiscard]] bool sfdpRead(const bmp_t &probe, const uintptr_t address, T &buffer)
+			{ return sfdpRead(probe, static_cast<uint32_t>(address), &buffer, sizeof(T)); }
 
 	void displayHeader(const sfdpHeader_t &header)
 	{
