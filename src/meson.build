@@ -80,11 +80,13 @@ bmpflashSrc = [
 	'sfdp.cxx', 'actions.cxx', versionHeader,
 ]
 
+subdir('elf')
+
 bmpflash = executable(
 	'bmpflash',
 	bmpflashSrc,
 	cpp_args: ['-D_FORTIFY_SOURCE=2'],
-	include_directories: [include_directories('include')],
+	include_directories: [include_directories('include', 'include/elf')],
 	dependencies: [substrate, fmt, libusb],
 	gnu_symbol_visibility: 'inlineshidden'
 )
