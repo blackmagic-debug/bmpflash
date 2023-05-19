@@ -6,6 +6,8 @@
 
 namespace bmpflash::elf
 {
+	using bmpflash::elf::io::match_t;
+
 	elf_t::elf_t(fd_t &&file) : _backingStorage{file.map(PROT_READ)}, _header
 	{
 		[this]() -> elfHeader_t
@@ -94,4 +96,56 @@ namespace bmpflash::elf
 			return allocate<elf64::elfHeader_t>();
 		}(elfClass)
 	} { }
+
+	[[nodiscard]] span<uint8_t> elf_t::dataFor(const programHeader_t &header) noexcept
+	{
+		return std::visit(match_t
+		{
+			[&](mmap_t &storage)
+			{
+				const auto &data{toSpan(storage)};
+				return data.subspan(header.offset(), header.fileLength());
+			},
+			[&](const fragmentStorage_t &) -> span<uint8_t> { return {}; }
+		}, _backingStorage);
+	}
+
+	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const programHeader_t &header) const noexcept
+	{
+		return std::visit(match_t
+		{
+			[&](const mmap_t &storage)
+			{
+				const auto &data{toSpan(storage)};
+				return data.subspan(header.offset(), header.fileLength());
+			},
+			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
+		}, _backingStorage);
+	}
+
+	[[nodiscard]] span<uint8_t> elf_t::dataFor(const sectionHeader_t &header) noexcept
+	{
+		return std::visit(match_t
+		{
+			[&](mmap_t &storage)
+			{
+				const auto &data{toSpan(storage)};
+				return data.subspan(header.fileOffset(), header.fileLength());
+			},
+			[&](const fragmentStorage_t &) -> span<uint8_t> { return {}; }
+		}, _backingStorage);
+	}
+
+	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const sectionHeader_t &header) const noexcept
+	{
+		return std::visit(match_t
+		{
+			[&](const mmap_t &storage)
+			{
+				const auto &data{toSpan(storage)};
+				return data.subspan(header.fileOffset(), header.fileLength());
+			},
+			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
+		}, _backingStorage);
+	}
 } // namespace mangrove::elf

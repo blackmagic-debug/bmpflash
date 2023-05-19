@@ -24,7 +24,9 @@ namespace bmpflash::elf
 		// NOLINTNEXTLINE(modernize-avoid-c-arrays)
 		using fragmentStorage_t = std::vector<std::unique_ptr<uint8_t []>>;
 
-		[[nodiscard]] static inline span<uint8_t> toSpan(mmap_t &map) noexcept
+		[[nodiscard]] inline span<uint8_t> toSpan(mmap_t &map) noexcept
+			{ return {map.address<uint8_t>(), map.length()}; }
+		[[nodiscard]] inline span<const uint8_t> toSpan(const mmap_t &map) noexcept
 			{ return {map.address<uint8_t>(), map.length()}; }
 	} // namespace internal
 
@@ -58,6 +60,11 @@ namespace bmpflash::elf
 		[[nodiscard]] const auto &sectionHeaders() const noexcept { return _sectionHeaders; }
 		[[nodiscard]] auto &sectionNames() noexcept { return _sectionNames; }
 		[[nodiscard]] const auto &sectionNames() const noexcept { return _sectionNames; }
+
+		[[nodiscard]] span<uint8_t> dataFor(const programHeader_t &header) noexcept;
+		[[nodiscard]] span<const uint8_t> dataFor(const programHeader_t &header) const noexcept;
+		[[nodiscard]] span<uint8_t> dataFor(const sectionHeader_t &header) noexcept;
+		[[nodiscard]] span<const uint8_t> dataFor(const sectionHeader_t &header) const noexcept;
 	};
 } // namespace mangrove::elf
 
