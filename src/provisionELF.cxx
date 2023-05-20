@@ -91,7 +91,7 @@ namespace bmpflash::elf
 	{
 		// Start by erasing the block
 		if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U) ||
-			!probe.runCommand(spiFlashCommand_t::sectorErase, address))
+			!probe.runCommand(spiFlashCommand_t::sectorErase, static_cast<uint32_t>(address)))
 		{
 			console.error("Failed to prepare on-board Flash block for writing"sv);
 			return false;
@@ -107,7 +107,8 @@ namespace bmpflash::elf
 			}
 			// Then run the page programming command with the block of data
 			const auto subspan{block.subspan(offset, 256U)};
-			if (!probe.write(spiFlashCommand_t::pageProgram, address + offset, subspan.data(), subspan.size()))
+			if (!probe.write(spiFlashCommand_t::pageProgram, static_cast<uint32_t>(address + offset),
+				subspan.data(), subspan.size()))
 			{
 				console.error("Failed to write data to on-board Flash at offset +0x"sv, asHex_t{address + offset});
 				return false;
