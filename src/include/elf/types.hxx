@@ -32,6 +32,7 @@ namespace bmpflash::elf::types
 		[[nodiscard]] class_t elfClass() const noexcept;
 		[[nodiscard]] endian_t endian() const noexcept;
 		[[nodiscard]] abi_t abi() const noexcept;
+		[[nodiscard]] uint8_t abiVersion() const noexcept;
 		[[nodiscard]] type_t type() const noexcept;
 		[[nodiscard]] machine_t machine() const noexcept;
 		[[nodiscard]] version_t version() const noexcept;

@@ -34,7 +34,8 @@ namespace bmpflash::elf::types
 		[[nodiscard]] auto endian() const noexcept { return _endian; }
 		[[nodiscard]] auto version() const noexcept { return _storage.read<identVersion_t>(6); }
 		[[nodiscard]] auto abi() const noexcept { return _storage.read<abi_t>(7); }
-		[[nodiscard]] auto padding() const noexcept { return _storage.read<std::array<uint8_t, 8>>(8); }
+		[[nodiscard]] auto abiVersion() const noexcept { return _storage.read<uint8_t>(8); }
+		[[nodiscard]] auto padding() const noexcept { return _storage.read<std::array<uint8_t, 7>>(9); }
 
 		[[nodiscard]] constexpr static size_t size() noexcept { return 16U; }
 	};

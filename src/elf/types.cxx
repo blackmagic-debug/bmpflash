@@ -16,6 +16,8 @@ endian_t elfHeader_t::endian() const noexcept
 	{ return std::visit([](const auto &header) { return header.endian(); }, _header); }
 abi_t elfHeader_t::abi() const noexcept
 	{ return std::visit([](const auto &header) { return header.abi(); }, _header); }
+uint8_t elfHeader_t::abiVersion() const noexcept
+	{ return std::visit([](const auto &header) { return header.abiVersion(); }, _header); }
 type_t elfHeader_t::type() const noexcept
 	{ return std::visit([](const auto &header) { return header.type(); }, _header); }
 machine_t elfHeader_t::machine() const noexcept
