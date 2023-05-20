@@ -77,7 +77,7 @@ subdir('include')
 
 bmpflashSrc = [
 	'bmpflash.cxx', 'unicode.cxx', 'bmp.cxx', 'remoteSPI.cxx',
-	'sfdp.cxx', 'actions.cxx', versionHeader,
+	'sfdp.cxx', 'actions.cxx', 'provisionELF.cxx', versionHeader,
 ]
 
 subdir('elf')
