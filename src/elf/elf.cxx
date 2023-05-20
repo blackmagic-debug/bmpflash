@@ -148,4 +148,4 @@ namespace bmpflash::elf
 			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
 		}, _backingStorage);
 	}
-} // namespace mangrove::elf
+} // namespace bmpflash::elf

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 The Mangrove Language
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
-#ifndef FORMATS_ELF_HXX
-#define FORMATS_ELF_HXX
+#ifndef ELF_HXX
+#define ELF_HXX
 
 #include <variant>
 #include <vector>
@@ -66,6 +66,6 @@ namespace bmpflash::elf
 		[[nodiscard]] span<uint8_t> dataFor(const sectionHeader_t &header) noexcept;
 		[[nodiscard]] span<const uint8_t> dataFor(const sectionHeader_t &header) const noexcept;
 	};
-} // namespace mangrove::elf
+} // namespace bmpflash::elf
 
-#endif /*FORMATS_ELF_HXX*/
+#endif /*ELF_HXX*/

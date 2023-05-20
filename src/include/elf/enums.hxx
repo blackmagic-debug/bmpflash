@@ -141,6 +141,6 @@ namespace bmpflash::elf::enums
 		solOrdered = 0x04000000U, // SHF_ORDERED
 		solExclude = 0x08000000U, // SHF_EXCLUDE
 	};
-} // namespace mangrove::elf::enums
+} // namespace bmpflash::elf::enums
 
 #endif /*ELF_ENUMS_HXX*/
