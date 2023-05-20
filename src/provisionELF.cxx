@@ -181,7 +181,7 @@ namespace bmpflash::elf
 		return true;
 	}
 
-	bool provision_t::repack(const bmp_t &probe) const noexcept
+	bool provision_t::repack(const bmp_t &probe) const
 	{
 		const auto elfHeader{file.header()};
 		if (elfHeader.type() != type_t::executable || elfHeader.machine() != machine_t::arm ||

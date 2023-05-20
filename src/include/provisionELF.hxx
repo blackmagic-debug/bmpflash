@@ -21,7 +21,7 @@ namespace bmpflash::elf
 		provision_t(const path &fileName) noexcept;
 
 		[[nodiscard]] bool valid() const noexcept;
-		[[nodiscard]] bool repack(const bmp_t &probe) const noexcept;
+		[[nodiscard]] bool repack(const bmp_t &probe) const;
 	};
 } // namespace bmpflash::elf
 
