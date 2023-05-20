@@ -9,16 +9,32 @@
 #include <substrate/console>
 #include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
+#include <substrate/units>
 #include "provisionELF.hxx"
 
 using namespace std::literals::string_view_literals;
 using substrate::asHex_t;
 using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
+using substrate::operator ""_KiB;
+
+struct flashSection_t final
+{
+	uint32_t offset{};
+	uint32_t length{};
+	uint64_t flashAddr{};
+};
+
+struct flashHeader_t final
+{
+	std::vector<flashSection_t> sections{};
+	bool toPage(std::array<uint8_t, 4096> &pageBuffer) const noexcept;
+};
 
 namespace bmpflash::elf
 {
 	using segmentMap_t = std::map<uint64_t, const programHeader_t &>;
+	using block_t = std::array<uint8_t, 4_KiB>;
 
 	provision_t::provision_t(const path &fileName) noexcept : file{fd_t{fileName.c_str(), O_RDONLY | O_NOCTTY}} { }
 
@@ -99,6 +115,71 @@ namespace bmpflash::elf
 		}
 		return true;
 	}
+
+	[[nodiscard]] uint32_t currentOffsetFrom(const flashHeader_t &flashHeader) noexcept
+	{
+		// If there are no sections stored yet, the offset of the first is at the start of the second erase block
+		if (flashHeader.sections.empty())
+			return 4_KiB;
+		// Otherwise, grab the last and compute the next offset
+		const auto &last{flashHeader.sections.back()};
+		const auto offset{last.offset + last.length};
+		// Adjust the resulting value to the start of the next erase block
+		return static_cast<uint32_t>((offset + (4_KiB - 1U)) & ~(4_KiB - 1U));
+	}
+
+	bool packSection(const elf_t &file, const bmp_t &probe, flashHeader_t &flashHeader, const size_t sectionIndex,
+		const segmentMap_t &segmentMap)
+	{
+		const auto &sectHeader{file.sectionHeaders()[sectionIndex]};
+		const auto sectName{file.sectionNames().stringFromOffset(sectHeader.nameOffset())};
+		console.debug("Looking for section "sv, sectionIndex, " ("sv, sectName,
+			") in segment map. Section has address "sv, asHex_t{sectHeader.address()});
+		auto segment{map(segmentMap, sectHeader)};
+		if (segment == segmentMap.end() || !sectHeader.fileOffset())
+			return true;
+		const auto &progHeader{segment->second};
+
+		flashSection_t flashSection{};
+		flashSection.offset = currentOffsetFrom(flashHeader);
+		flashSection.flashAddr = progHeader.physicalAddress() + (sectHeader.address() - progHeader.virtualAddress());
+
+		console.debug("Found section in segment map, attempting to get underlying data for it"sv);
+		const auto sectionData{file.dataFor(sectHeader)};
+		if (sectionData.empty())
+		{
+			console.error("Cannot get any underlying data for section "sv, sectionIndex, " ("sv, sectName,
+				") at address "sv, asHex_t{sectHeader.address()});
+			return false;
+		}
+
+		block_t segmentBuffer{};
+		for (const auto offset : indexSequence_t{sectionData.size()}.step(segmentBuffer.size()))
+		{
+			// Figure out how many bytes we can sling at the segment buffer
+			const size_t amount{std::min(segmentBuffer.size(), sectionData.size() - offset)};
+			// Request the appropriate subspan from the sectionData span
+			const auto subspan{sectionData.subspan(offset, amount)};
+			// Copy the data, and then fill any remaining space with the Flash blank constant
+			std::copy(subspan.begin(), subspan.end(), segmentBuffer.begin());
+			for (const auto &idx : substrate::indexSequence_t{subspan.size(), segmentBuffer.size()})
+				segmentBuffer[idx] = 0xffU;
+
+			const auto blockOffset{flashSection.offset + offset};
+			if (!writeBlock(probe, blockOffset, segmentBuffer))
+			{
+				console.error("Failed to write segment data for 0x"sv, asHex_t{sectHeader.address()}, "+0x"sv,
+					asHex_t{offset}, " to the on-board Flash at offset +"sv, asHex_t{blockOffset});
+				return false;
+			}
+		}
+		flashSection.length = static_cast<uint32_t>(sectionData.size_bytes());
+		console.info("Adding section at "sv, asHex_t{flashSection.offset}, '(',
+			asHex_t{flashSection.length}, ") to flash header"sv);
+		flashHeader.sections.push_back(flashSection);
+		return true;
+	}
+
 	bool provision_t::repack(const bmp_t &probe) const noexcept
 	{
 		const auto elfHeader{file.header()};
@@ -113,6 +194,16 @@ namespace bmpflash::elf
 		if (!segmentMap)
 			return false;
 		console.info("Found "sv, segmentMap->size(), " usable program headers"sv);
+
+		flashHeader_t flashHeader{};
+		const auto sectHeaderCount{file.sectionHeaders().size()};
+		console.info("Found "sv, sectHeaderCount, " section headers"sv);
+
+		for (const auto &headerIndex : substrate::indexSequence_t{sectHeaderCount})
+		{
+			if (!packSection(file, probe, flashHeader, headerIndex, *segmentMap))
+				return false;
+		}
 		return true;
 	}
 } // namespace bmpflash::elf
