@@ -18,21 +18,21 @@ using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
 using substrate::operator ""_KiB;
 
-struct flashSection_t final
-{
-	uint32_t offset{};
-	uint32_t length{};
-	uint64_t flashAddr{};
-};
-
-struct flashHeader_t final
-{
-	std::vector<flashSection_t> sections{};
-	bool toPage(std::array<uint8_t, 4096> &pageBuffer) const noexcept;
-};
-
 namespace bmpflash::elf
 {
+	struct flashSection_t final
+	{
+		uint32_t offset{};
+		uint32_t length{};
+		uint64_t flashAddr{};
+	};
+
+	struct flashHeader_t final
+	{
+		std::vector<flashSection_t> sections{};
+		bool toPage(std::array<uint8_t, 4096> &pageBuffer) const noexcept;
+	};
+
 	using segmentMap_t = std::map<uint64_t, const programHeader_t &>;
 	using block_t = std::array<uint8_t, 4_KiB>;
 
