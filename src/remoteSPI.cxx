@@ -31,6 +31,7 @@ constexpr static auto remoteSPIEnd{"!sE" REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIChipID{"!sI" REMOTE_UINT8 REMOTE_UINT8 "#"sv};
 constexpr static auto remoteSPIRead{"!sr" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 REMOTE_UINT16 "#"sv};
 constexpr static auto remoteSPIWrite{"!sw" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 REMOTE_UINT16 ""sv};
+constexpr static auto remoteSPICommand{"!sc" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 "#"sv};
 
 static bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
 {
@@ -184,6 +185,18 @@ bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const
 	if (response[0] == remoteResponseParameterError)
 		return false;
 	// Check for any other errors
+	if (response[0] != remoteResponseOK)
+		throw bmpCommsError_t{};
+	return true;
+}
+
+bool bmp_t::runCommand(const spiFlashCommand_t command, const uint32_t address) const
+{
+	const auto request{fmt::format(remoteSPICommand, uint8_t(spiBus), uint8_t(spiDevice), uint16_t(command),
+		address & 0x00ffffffU)};
+	writePacket(request);
+	const auto response{readPacket()};
+	// Check if the probe returned any kind of error response
 	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
 	return true;
