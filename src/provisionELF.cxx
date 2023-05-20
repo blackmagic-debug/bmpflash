@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#include <cstddef>
 #include <string_view>
 #include <map>
 #include <optional>
 #include <substrate/fd>
 #include <substrate/console>
+#include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
 #include "provisionELF.hxx"
 
 using namespace std::literals::string_view_literals;
+using substrate::asHex_t;
+using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
 
 namespace bmpflash::elf
@@ -52,6 +56,48 @@ namespace bmpflash::elf
 				segmentMap.emplace(progHeader.virtualAddress(), progHeader);
 		}
 		return segmentMap;
+	}
+
+	[[nodiscard]] auto map(const segmentMap_t &segmentMap, const sectionHeader_t &sectHeader)
+	{
+		for (auto begin{segmentMap.begin()}; begin != segmentMap.end(); ++begin)
+		{
+			const auto &[_, progHeader] = *begin;
+			const auto progHdrEnd{progHeader.virtualAddress() + progHeader.memoryLength()};
+			const auto sectHdrEnd{sectHeader.address() + sectHeader.fileLength()};
+			if (sectHeader.address() >= progHeader.virtualAddress() && sectHdrEnd <= progHdrEnd)
+				return begin;
+		}
+		return segmentMap.end();
+	}
+
+	[[nodiscard]] bool writeBlock(const bmp_t &probe, const size_t address, const span<uint8_t> &block)
+	{
+		// Start by erasing the block
+		if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U) ||
+			!probe.runCommand(spiFlashCommand_t::sectorErase, address))
+		{
+			console.error("Failed to prepare on-board Flash block for writing"sv);
+			return false;
+		}
+		// Then loop through each write page worth of data in the block
+		for (const auto offset : indexSequence_t{block.size()}.step(256))
+		{
+			// Try to enable write
+			if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U))
+			{
+				console.error("Failed to prepare on-board Flash block for writing"sv);
+				return false;
+			}
+			// Then run the page programming command with the block of data
+			const auto subspan{block.subspan(offset, 256U)};
+			if (!probe.write(spiFlashCommand_t::pageProgram, address + offset, subspan.data(), subspan.size()))
+			{
+				console.error("Failed to write data to on-board Flash at offset +0x"sv, asHex_t{address + offset});
+				return false;
+			}
+		}
+		return true;
 	}
 	bool provision_t::repack(const bmp_t &probe) const noexcept
 	{
