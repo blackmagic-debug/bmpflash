@@ -17,9 +17,11 @@ versionHeaderSrc = configure_file(
 	output: 'version.hxx.in'
 )
 
+git = find_program('git', required: false)
 versionHeader = vcs_tag(
 	input: versionHeaderSrc,
 	output: 'version.hxx',
 	replace_string: '@VERSION@',
+	command: [git, 'describe', '--always', '--tags', '--dirty'],
 	fallback: 'v@0@'.format(meson.project_version())
 )
