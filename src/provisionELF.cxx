@@ -224,6 +224,14 @@ namespace bmpflash::elf
 			if (!packSection(file, probe, flashHeader, headerIndex, *segmentMap))
 				return false;
 		}
+
+		block_t headerBuffer{};
+		if (!flashHeader.toPage(headerBuffer) ||
+			!writeBlock(probe, 0U, headerBuffer))
+		{
+			console.error("Failed to write the Flash header to the on-board Flash"sv);
+			return false;
+		}
 		return true;
 	}
 
