@@ -168,10 +168,13 @@ namespace bmpflash
 
 	bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments)
 	{
+		// Try to begin communications with the BMP
 		auto probe{beginComms(device, std::get<flag_t>(*sfdpArguments["bus"sv]))};
+		// If we got good comms, then try and identify the Flash
 		if (!probe || !identifyFlash(*probe))
 			return false;
 
+		// Ask for the SFDP data and display it then clean up
 		sfdp::readAndDisplay(*probe);
 		return probe->end();
 	}
