@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#ifndef ACTIONS_HXX
+#define ACTIONS_HXX
 
 #include <cstdint>
 #include <vector>
@@ -23,3 +25,5 @@ namespace bmpflash
 	[[nodiscard]] bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments);
 	[[nodiscard]] bool provision(const usbDevice_t &device, const arguments_t &provisionArguments);
 } // namespace bmpflash
+
+#endif /*ACTIONS_HXX*/
