@@ -17,11 +17,13 @@ private:
 public:
 	usbConfiguration_t() noexcept = default;
 	usbConfiguration_t(libusb_config_descriptor *const config_) noexcept : config{config_} { }
+	// NOTLINTNEXTLINE(modernize-use-equals-default)
 	~usbConfiguration_t() noexcept { libusb_free_config_descriptor(config); }
 
 	[[nodiscard]] bool valid() const noexcept { return config; }
 	[[nodiscard]] uint8_t interfaces() const noexcept { return config->bNumInterfaces; }
 
+	// NOTLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] usbInterface_t interface(const size_t index) const noexcept
 	{
 		// If the interface requested doesn't exist, return a dummy one

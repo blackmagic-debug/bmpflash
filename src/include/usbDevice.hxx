@@ -171,8 +171,8 @@ public:
 	usbDeviceHandle_t() noexcept = default;
 	usbDeviceHandle_t(libusb_device_handle *const device_) noexcept : device{device_}
 		{ autoDetachKernelDriver(true); }
-	~usbDeviceHandle_t() noexcept
-		{ libusb_close(device); }
+	// NOLINTNEXTLINE(modernize-use-equals-default)
+	~usbDeviceHandle_t() noexcept { libusb_close(device); }
 	[[nodiscard]] bool valid() const noexcept { return device; }
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
@@ -247,7 +247,7 @@ public:
 			const milliseconds_t timeout = 0ms) const noexcept
 		{ return bulkTransfer(endpointAddress(endpointDir_t::controllerIn, endpoint), bufferPtr, bufferLen, timeout); }
 
-	template<typename T> bool writeControl(requestType_t requestType, const uint8_t request,
+	template<typename T> [[nodiscard]] bool writeControl(requestType_t requestType, const uint8_t request,
 		const uint16_t value, const uint16_t index, const T &data) const noexcept
 	{
 		requestType.dir(endpointDir_t::controllerOut);
@@ -338,6 +338,7 @@ public:
 		return {handle};
 	}
 
+	// NOTLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] usbConfiguration_t activeConfiguration() const noexcept
 	{
 		libusb_config_descriptor *config = nullptr;
