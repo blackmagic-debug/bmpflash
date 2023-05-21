@@ -21,4 +21,5 @@ namespace bmpflash
 	[[nodiscard]] int32_t displayInfo(const std::vector<usbDevice_t> &devices, const arguments_t &infoArguments);
 
 	[[nodiscard]] bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments);
+	[[nodiscard]] bool provision(const usbDevice_t &device, const arguments_t &provisionArguments);
 } // namespace bmpflash

@@ -8,12 +8,15 @@
 #include "actions.hxx"
 #include "flashVendors.hxx"
 #include "sfdp.hxx"
+#include "provisionELF.hxx"
 #include "units.hxx"
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
+using std::filesystem::path;
 using substrate::indexedIterator_t;
 using bmpflash::utils::humanReadableSize;
+using elfProvision_t = bmpflash::elf::provision_t;
 
 namespace bmpflash
 {
@@ -176,6 +179,36 @@ namespace bmpflash
 
 		// Ask for the SFDP data and display it then clean up
 		sfdp::readAndDisplay(*probe);
+		return probe->end();
+	}
+
+	bool provision(const usbDevice_t &device, const arguments_t &provisionArguments)
+	{
+		// Try to begin communications with the BMP
+		auto probe{beginComms(device, spiBus_t::internal)};
+		// If we got good comms, then try and identify the Flash
+		if (!probe || !identifyFlash(*probe))
+			return false;
+
+		// Try and open the requested file, checking that it's a valid ELF file
+		const elfProvision_t elf{std::any_cast<path>(std::get<flag_t>(*provisionArguments["file"sv]).value())};
+		if (!elf.valid())
+		{
+			console.error("Cannot read requested file as an ELF binary"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+		// Now try and provision the requested binary to the on-board Flash
+		console.info("Repacking ELF file for on-board SPI Flash and provisioning it to BMP"sv);
+		if (!elf.repack(*probe))
+		{
+			console.error("Failed to successfully repack ELF file"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+
+		// Finish up by cleaning up the session
+		console.info("Repacking and provisioning complete"sv);
 		return probe->end();
 	}
 } // namespace bmpflash

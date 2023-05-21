@@ -118,6 +118,8 @@ int main(const int argCount, const char *const *const argList)
 			// Dispatch based on the requested action (info's already handled)
 			if (action.value() == "sfdp"sv)
 				return bmpflash::displaySFDP(*device, action.arguments());
+			if (action.value() == "provision"sv)
+				return bmpflash::provision(*device, action.arguments());
 			return false;
 		}()
 	};
