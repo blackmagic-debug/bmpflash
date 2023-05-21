@@ -97,7 +97,7 @@ namespace bmpflash::elf
 		}(elfClass)
 	} { }
 
-	[[nodiscard]] span<uint8_t> elf_t::dataFor(const programHeader_t &header) noexcept
+	[[nodiscard]] span<uint8_t> elf_t::dataFor(const programHeader_t &header) noexcept try
 	{
 		return std::visit(match_t
 		{
@@ -109,8 +109,10 @@ namespace bmpflash::elf
 			[&](const fragmentStorage_t &) -> span<uint8_t> { return {}; }
 		}, _backingStorage);
 	}
+	catch (const std::out_of_range &)
+		{ return {}; }
 
-	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const programHeader_t &header) const noexcept
+	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const programHeader_t &header) const noexcept try
 	{
 		return std::visit(match_t
 		{
@@ -122,8 +124,10 @@ namespace bmpflash::elf
 			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
 		}, _backingStorage);
 	}
+	catch (const std::out_of_range &)
+		{ return {}; }
 
-	[[nodiscard]] span<uint8_t> elf_t::dataFor(const sectionHeader_t &header) noexcept
+	[[nodiscard]] span<uint8_t> elf_t::dataFor(const sectionHeader_t &header) noexcept try
 	{
 		return std::visit(match_t
 		{
@@ -135,8 +139,10 @@ namespace bmpflash::elf
 			[&](const fragmentStorage_t &) -> span<uint8_t> { return {}; }
 		}, _backingStorage);
 	}
+	catch (const std::out_of_range &)
+		{ return {}; }
 
-	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const sectionHeader_t &header) const noexcept
+	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const sectionHeader_t &header) const noexcept try
 	{
 		return std::visit(match_t
 		{
@@ -148,4 +154,6 @@ namespace bmpflash::elf
 			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
 		}, _backingStorage);
 	}
+	catch (const std::out_of_range &)
+		{ return {}; }
 } // namespace bmpflash::elf
