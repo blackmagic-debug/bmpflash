@@ -111,6 +111,8 @@ namespace bmpflash::elf
 	}
 	catch (const std::out_of_range &)
 		{ return {}; }
+	catch (const std::bad_variant_access &)
+		{ return {}; }
 
 	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const programHeader_t &header) const noexcept try
 	{
@@ -125,6 +127,8 @@ namespace bmpflash::elf
 		}, _backingStorage);
 	}
 	catch (const std::out_of_range &)
+		{ return {}; }
+	catch (const std::bad_variant_access &)
 		{ return {}; }
 
 	[[nodiscard]] span<uint8_t> elf_t::dataFor(const sectionHeader_t &header) noexcept try
@@ -141,6 +145,8 @@ namespace bmpflash::elf
 	}
 	catch (const std::out_of_range &)
 		{ return {}; }
+	catch (const std::bad_variant_access &)
+		{ return {}; }
 
 	[[nodiscard]] span<const uint8_t> elf_t::dataFor(const sectionHeader_t &header) const noexcept try
 	{
@@ -155,5 +161,7 @@ namespace bmpflash::elf
 		}, _backingStorage);
 	}
 	catch (const std::out_of_range &)
+		{ return {}; }
+	catch (const std::bad_variant_access &)
 		{ return {}; }
 } // namespace bmpflash::elf
