@@ -60,6 +60,9 @@ int main(const int argCount, const char *const *const argList)
 	if (version)
 	{
 		bmpflash::displayVersion();
+		const auto *const libusbVersion{libusb_get_version()};
+		console.info("Using libusb v"sv, libusbVersion->major, '.', libusbVersion->minor, '.',
+			libusbVersion->micro, '.', libusbVersion->nano, libusbVersion->rc);
 		return 0;
 	}
 	// Display the help if requested or there were no command line options given
