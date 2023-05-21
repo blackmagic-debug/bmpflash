@@ -75,6 +75,9 @@ namespace bmpflash::spiFlash
 		readSFDP = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 1U, opcode_t::readSFDP),
 		wakeUp = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::wakeUp),
 	};
+
+	constexpr inline uint8_t spiStatusBusy{1};
+	constexpr inline uint8_t spiStatusWriteEnabled{2};
 } // namespace bmpflash::spiFlash
 
 #endif /*SPI_FLASH_HXX*/

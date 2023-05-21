@@ -106,11 +106,26 @@ namespace bmpflash::elf
 		return segmentMap.end();
 	}
 
+	[[nodiscard]] bool waitFlashComplete(const bmp_t &probe)
+	{
+		uint8_t status = spiFlash::spiStatusBusy;
+		while (status & spiFlash::spiStatusBusy)
+		{
+			if (!probe.read(spiFlashCommand_t::readStatus, 0U, &status, sizeof(status)))
+			{
+				console.error("Failed to read on-board Flash status"sv);
+				return false;
+			}
+		}
+		return true;
+	}
+
 	[[nodiscard]] bool writeBlock(const bmp_t &probe, const size_t address, const span<uint8_t> &block)
 	{
 		// Start by erasing the block
 		if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U) ||
-			!probe.runCommand(spiFlashCommand_t::sectorErase, static_cast<uint32_t>(address)))
+			!probe.runCommand(spiFlashCommand_t::sectorErase, static_cast<uint32_t>(address)) ||
+			!waitFlashComplete(probe))
 		{
 			console.error("Failed to prepare on-board Flash block for writing"sv);
 			return false;
@@ -127,7 +142,7 @@ namespace bmpflash::elf
 			// Then run the page programming command with the block of data
 			const auto subspan{block.subspan(offset, 256U)};
 			if (!probe.write(spiFlashCommand_t::pageProgram, static_cast<uint32_t>(address + offset),
-				subspan.data(), subspan.size()))
+				subspan.data(), subspan.size()) || !waitFlashComplete(probe))
 			{
 				console.error("Failed to write data to on-board Flash at offset +0x"sv, asHex_t{address + offset});
 				return false;
