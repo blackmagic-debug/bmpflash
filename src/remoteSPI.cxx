@@ -175,8 +175,14 @@ bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const
 		return false;
 
 	std::array<char, maxPacketSize + 1U> request{};
-	auto offset = static_cast<size_t>(fmt::format_to(request.begin(), remoteSPIWrite, uint8_t(spiBus),
-		uint8_t(spiDevice), uint16_t(command), address & 0x00ffffffU, dataLength) - request.begin());
+	auto offset
+	{
+		static_cast<size_t>
+		(
+			fmt::format_to_n(request.begin(), request.size(), remoteSPIWrite, uint8_t(spiBus), uint8_t(spiDevice),
+			uint16_t(command), address & 0x00ffffffU, dataLength).out - request.begin()
+		)
+	};
 	offset += toHex(data, dataLength, substrate::span{request}.subspan(offset, maxPacketSize - offset));
 	request[offset] = '#';
 	writePacket({request.data()});
