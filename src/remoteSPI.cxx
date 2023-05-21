@@ -33,7 +33,7 @@ constexpr static auto remoteSPIRead{"!sr" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT1
 constexpr static auto remoteSPIWrite{"!sw" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 REMOTE_UINT16 ""sv};
 constexpr static auto remoteSPICommand{"!sc" REMOTE_UINT8 REMOTE_UINT8 REMOTE_UINT16 REMOTE_UINT24 "#"sv};
 
-static bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
+bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::span<uint8_t> dataOut) noexcept
 {
 	// If the ratio of data in to out is incorrect, fail early
 	if (dataIn.size_bytes() < dataOut.size_bytes() * 2U)
@@ -51,7 +51,7 @@ static bool fromHexSpan(const substrate::span<const char> &dataIn, substrate::sp
 	return true;
 }
 
-static size_t toHexSpan(const substrate::span<const uint8_t> dataIn, substrate::span<char> &dataOut) noexcept
+size_t toHexSpan(const substrate::span<const uint8_t> dataIn, substrate::span<char> &dataOut) noexcept
 {
 	// If the ratio of data in to out is incorrect, fail early
 	if (dataIn.size_bytes() * 2U > dataOut.size_bytes())
@@ -67,12 +67,12 @@ static size_t toHexSpan(const substrate::span<const uint8_t> dataIn, substrate::
 	return dataIn.size_bytes() * 2U;
 }
 
-template<typename T> static bool fromHex(const substrate::span<const char> &dataIn, T &result) noexcept
+template<typename T> bool fromHex(const substrate::span<const char> &dataIn, T &result) noexcept
 	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(&result), sizeof(T)}); }
-static bool fromHex(const substrate::span<const char> &dataIn, void *const result, const size_t resultLength) noexcept
+bool fromHex(const substrate::span<const char> &dataIn, void *const result, const size_t resultLength) noexcept
 	{ return fromHexSpan(dataIn, {reinterpret_cast<uint8_t *>(result), resultLength}); }
 
-static size_t toHex(const void *const buffer, const size_t bufferLength, substrate::span<char> dataOut) noexcept
+size_t toHex(const void *const buffer, const size_t bufferLength, substrate::span<char> dataOut) noexcept
 	{ return toHexSpan({reinterpret_cast<const uint8_t *>(buffer), bufferLength}, dataOut); }
 
 std::string bmp_t::init() const
