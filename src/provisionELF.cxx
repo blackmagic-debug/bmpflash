@@ -244,7 +244,7 @@ namespace bmpflash::elf
 	template<typename T, size_t N> void copyInto(span<uint8_t> destination, const std::array<T, N> &source) noexcept
 		{ return copyInto(destination, span<const T>{source.data(), source.size()}); }
 
-	bool flashHeader_t::toPage(span<uint8_t> pageBuffer) const noexcept
+	bool flashHeader_t::toPage(span<uint8_t> pageBuffer) const noexcept try
 	{
 		std::fill(pageBuffer.begin(), pageBuffer.end(), 0xffU);
 		copyInto(pageBuffer.subspan(0, 4), flashMagic);
@@ -268,4 +268,6 @@ namespace bmpflash::elf
 		writeLE(crc32, pageBuffer.subspan(4, 4));
 		return true;
 	}
+	catch (const std::out_of_range &)
+		{ return false; }
 } // namespace bmpflash::elf
