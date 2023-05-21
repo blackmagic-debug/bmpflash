@@ -122,6 +122,7 @@ namespace bmpflash::elf
 
 	[[nodiscard]] bool writeBlock(const bmp_t &probe, const size_t address, const span<uint8_t> &block)
 	{
+		console.debug("Erasing sector at 0x"sv, asHex_t<6, '0'>{address});
 		// Start by erasing the block
 		if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U) ||
 			!probe.runCommand(spiFlashCommand_t::sectorErase, static_cast<uint32_t>(address)) ||
@@ -141,6 +142,8 @@ namespace bmpflash::elf
 			}
 			// Then run the page programming command with the block of data
 			const auto subspan{block.subspan(offset, 256U)};
+			console.debug("Writing "sv, subspan.size_bytes(), " bytes to page at 0x"sv,
+				asHex_t<6, '0'>{address + offset});
 			if (!probe.write(spiFlashCommand_t::pageProgram, static_cast<uint32_t>(address + offset),
 				subspan.data(), subspan.size()) || !waitFlashComplete(probe))
 			{
@@ -169,7 +172,7 @@ namespace bmpflash::elf
 		const auto &sectHeader{file.sectionHeaders()[sectionIndex]};
 		const auto sectName{file.sectionNames().stringFromOffset(sectHeader.nameOffset())};
 		console.debug("Looking for section "sv, sectionIndex, " ("sv, sectName,
-			") in segment map. Section has address "sv, asHex_t{sectHeader.address()});
+			") in segment map. Section has address 0x"sv, asHex_t<8, '0'>{sectHeader.address()});
 		auto segment{map(segmentMap, sectHeader)};
 		if (segment == segmentMap.end() || !sectHeader.fileOffset())
 			return true;
@@ -188,6 +191,8 @@ namespace bmpflash::elf
 			return false;
 		}
 
+		console.debug("Transfering "sv, sectionData.size(), " bytes of data to on-board Flash at offset +0x"sv,
+			asHex_t{flashSection.offset});
 		block_t segmentBuffer{};
 		for (const auto offset : indexSequence_t{sectionData.size()}.step(segmentBuffer.size()))
 		{
