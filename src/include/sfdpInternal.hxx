@@ -35,6 +35,7 @@ namespace bmpflash::sfdp
 			{ return static_cast<uint32_t>((value[2] << 16U) | (value[1] << 8U) | value[0]); }
 	};
 
+// NOLINTBEGIN(misc-non-private-member-variables-in-classes)
 	struct sfdpHeader_t
 	{
 		std::array<char, 4> magic{};
@@ -78,8 +79,7 @@ namespace bmpflash::sfdp
 				{
 					if (isExponential())
 						return 1U << value();
-					else
-						return value() + 1U;
+					return value() + 1U;
 				}()
 			};
 			return bits / 8U;
@@ -160,6 +160,7 @@ namespace bmpflash::sfdp
 		uint8_t reserved4{};
 		uint32_t statusAndAddressingMode{};
 	};
+// NOLINTEND(misc-non-private-member-variables-in-classes)
 
 	static_assert(sizeof(uint24_t) == 3);
 	static_assert(sizeof(sfdpHeader_t) == 8);
