@@ -191,7 +191,7 @@ namespace bmpflash
 			return false;
 
 		// Try and open the requested file, checking that it's a valid ELF file
-		const elfProvision_t elf{std::any_cast<path>(std::get<flag_t>(*provisionArguments["file"sv]).value())};
+		const elfProvision_t elf{std::any_cast<path>(std::get<flag_t>(*provisionArguments["fileName"sv]).value())};
 		if (!elf.valid())
 		{
 			console.error("Cannot read requested file as an ELF binary"sv);
