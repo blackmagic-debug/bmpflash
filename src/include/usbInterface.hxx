@@ -31,7 +31,7 @@ public:
 		{ return static_cast<T>(interface->bInterfaceProtocol); }
 	[[nodiscard]] auto interfaceIndex() const noexcept { return interface->iInterface; }
 
-	// NOTLINTNEXTLINE(readability-convert-member-functions-to-static)
+	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] usbEndpoint_t endpoint(const size_t index) const noexcept
 	{
 		// If the endpoint requested doesn't exist, return a dummy one

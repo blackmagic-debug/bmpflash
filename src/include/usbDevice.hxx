@@ -338,7 +338,7 @@ public:
 		return {handle};
 	}
 
-	// NOTLINTNEXTLINE(readability-convert-member-functions-to-static)
+	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] usbConfiguration_t activeConfiguration() const noexcept
 	{
 		libusb_config_descriptor *config = nullptr;
