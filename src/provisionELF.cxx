@@ -10,16 +10,21 @@
 #include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
 #include <substrate/units>
+#include <substrate/buffer_utils>
 #include "provisionELF.hxx"
+#include "crc32.hxx"
 
 using namespace std::literals::string_view_literals;
 using substrate::asHex_t;
 using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
 using substrate::operator ""_KiB;
+using substrate::buffer_utils::writeLE;
 
 namespace bmpflash::elf
 {
+	constexpr static std::array<char, 4> flashMagic{{'B', 'M', 'P', 'F'}};
+
 	struct flashSection_t final
 	{
 		uint32_t offset{};
@@ -27,10 +32,24 @@ namespace bmpflash::elf
 		uint64_t flashAddr{};
 	};
 
+	/*
+	 * The Flash header is laid out as follows:
+	 *
+	 *   0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+	 * +---+---+---+---+---------------+---------------+----------------+
+	 * | B | M | P | F |     CRC32     | section count | ....           | +0x0
+	 * +---+---+---+---+---------------+---------------+----------------+
+	 *
+	 * Where '....' at the end signals the start of the packed flashSection_t headers.
+	 *
+	 * The CRC32 value covers all bytes in the page and is calculated assuming the
+	 * CRC32 is value 0xfffffffFU.
+	 */
 	struct flashHeader_t final
 	{
+		// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
 		std::vector<flashSection_t> sections{};
-		bool toPage(std::array<uint8_t, 4096> &pageBuffer) const noexcept;
+		[[nodiscard]] bool toPage(span<uint8_t> pageBuffer) const noexcept;
 	};
 
 	using segmentMap_t = std::map<uint64_t, const programHeader_t &>;
@@ -205,6 +224,40 @@ namespace bmpflash::elf
 			if (!packSection(file, probe, flashHeader, headerIndex, *segmentMap))
 				return false;
 		}
+		return true;
+	}
+
+	template<typename T> void copyInto(span<uint8_t> destination, const span<const T> &source) noexcept
+	{
+		std::memcpy(destination.data(), source.data(),
+			std::min(destination.size_bytes(), source.size_bytes()));
+	}
+
+	template<typename T, size_t N> void copyInto(span<uint8_t> destination, const std::array<T, N> &source) noexcept
+		{ return copyInto(destination, span<const T>{source.data(), source.size()}); }
+
+	bool flashHeader_t::toPage(span<uint8_t> pageBuffer) const noexcept
+	{
+		std::fill(pageBuffer.begin(), pageBuffer.end(), 0xffU);
+		copyInto(pageBuffer.subspan(0, 4), flashMagic);
+		writeLE(static_cast<uint32_t>(sections.size()), pageBuffer.subspan(8, 4));
+
+		size_t offset{12U};
+		for (const auto &section : sections)
+		{
+			static_assert(sizeof(section) == 16U);
+			const auto sectionSubspan{pageBuffer.subspan(offset, sizeof(section))};
+			if (sectionSubspan.size_bytes() > pageBuffer.size_bytes())
+				return false;
+			writeLE(section.offset, sectionSubspan.subspan(0, 4));
+			writeLE(section.length, sectionSubspan.subspan(4, 4));
+			writeLE(section.flashAddr, sectionSubspan.subspan(8, 8));
+			offset += sizeof(section);
+		}
+
+		uint32_t crc32{0xffffffffU};
+		crc32_t::crc(crc32, {pageBuffer.data(), pageBuffer.size()});
+		writeLE(crc32, pageBuffer.subspan(4, 4));
 		return true;
 	}
 } // namespace bmpflash::elf

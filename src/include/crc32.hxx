@@ -24,7 +24,7 @@ namespace bmpflash
 		static std::array<const uint32_t, 256> crcTable;
 
 	public:
-		static void crc(uint32_t &crc, const substrate::span<const uint8_t> &data) noexcept
+		static void crc(uint32_t &crc, const substrate::span<const uint8_t> data) noexcept
 		{
 			crc ^= UINT32_C(0xffffffff);
 			for (const auto &item : data)
