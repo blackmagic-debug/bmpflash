@@ -176,8 +176,8 @@ namespace usb::types::cdc
 		rtsActivate = 2U,
 	};
 
-	constexpr inline uint16_t operator |(const controlLines_t a, const controlLines_t b) noexcept
-		{ return uint16_t(a) | uint16_t(b); }
+	constexpr inline uint16_t operator |(const controlLines_t lhs, const controlLines_t rhs) noexcept
+		{ return uint16_t(lhs) | uint16_t(rhs); }
 } // namespace usb::types::cdc
 
 #endif /*USB_TYPES_HXX*/
