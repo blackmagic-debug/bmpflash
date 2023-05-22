@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <exception>
+#include <substrate/span>
 #include "usbDevice.hxx"
 #include "spiFlash.hxx"
 
@@ -77,5 +78,10 @@ public:
 	[[nodiscard]] bool write(spiFlashCommand_t command, uint32_t address, const void *data, size_t dataLength) const;
 	[[nodiscard]] bool runCommand(spiFlashCommand_t command, uint32_t address) const;
 };
+
+namespace bmpflash::spiFlash
+{
+	[[nodiscard]] bool writeBlock(const bmp_t &probe, size_t address, const substrate::span<uint8_t> &block);
+} // namespace bmpflash::spiFlash
 
 #endif /*BMP_HXX*/
