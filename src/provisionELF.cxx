@@ -178,6 +178,12 @@ namespace bmpflash::elf
 			return true;
 		const auto &progHeader{segment->second};
 
+		if (sectHeader.fileLength() == 0)
+		{
+			console.debug("Section is empty, skipping"sv);
+			return true;
+		}
+
 		flashSection_t flashSection{};
 		flashSection.offset = currentOffsetFrom(flashHeader);
 		flashSection.flashAddr = progHeader.physicalAddress() + (sectHeader.address() - progHeader.virtualAddress());
