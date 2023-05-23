@@ -78,6 +78,7 @@ namespace bmpflash::spiFlash
 		readJEDECID = command(opcodeMode_t::opcodeOnly, dataMode_t::dataIn, 0U, opcode_t::jedecID),
 		readSFDP = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 1U, opcode_t::readSFDP),
 		wakeUp = command(opcodeMode_t::opcodeOnly, 0U, opcode_t::wakeUp),
+		pageRead = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 0U, opcode_t::pageRead),
 	};
 
 	constexpr inline uint8_t spiStatusBusy{1};
@@ -107,6 +108,7 @@ namespace bmpflash::spiFlash
 
 		[[nodiscard]] bool waitFlashIdle(const bmp_t &probe);
 		[[nodiscard]] bool writeBlock(const bmp_t &probe, size_t address, const substrate::span<uint8_t> &block);
+		[[nodiscard]] bool readBlock(const bmp_t &probe, size_t address, substrate::span<uint8_t> block);
 	};
 } // namespace bmpflash::spiFlash
 

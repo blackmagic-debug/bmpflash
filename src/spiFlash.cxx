@@ -61,4 +61,20 @@ namespace bmpflash::spiFlash
 		}
 		return true;
 	}
+
+	bool spiFlash_t::readBlock(const bmp_t &probe, const size_t address, substrate::span<uint8_t> block)
+	{
+		console.debug("Reading Flash starting at 0x"sv, asHex_t<6, '0'>{address});
+		for (const auto offset : indexSequence_t{block.size()}.step(pageSize_))
+		{
+			auto subspan{block.subspan(offset, 256U)};
+			if (!probe.read(spiFlashCommand_t::pageRead, static_cast<uint32_t>(address + offset),
+				subspan.data(), subspan.size()))
+			{
+				console.error("Failed to read data from SPI Flash at offset +0x"sv, asHex_t{address + offset});
+				return false;
+			}
+		}
+		return true;
+	}
 } // namespace bmpflash::spiFlash
