@@ -21,6 +21,7 @@ using substrate::commandLine::item_t;
 using substrate::commandLine::parseArguments;
 
 arguments_t args{};
+uint64_t verbosity{0U};
 
 [[nodiscard]] auto findBMPs(const usbContext_t &context)
 {
@@ -39,6 +40,7 @@ arguments_t args{};
 int main(const int argCount, const char *const *const argList)
 {
 	console = {stdout, stderr};
+	console.showDebug(false);
 
 	// Try to parser the command line arguments
 	if (const auto result{parseArguments(static_cast<size_t>(argCount), argList, bmpflash::programOptions)}; !result)
@@ -48,6 +50,14 @@ int main(const int argCount, const char *const *const argList)
 	}
 	else // NOLINT(readability-else-after-return)
 		args = *result;
+
+	// Extract the verbosity flag
+	const auto *const verbosityArg{args["verbosity"sv]};
+	if (verbosityArg)
+		verbosity = std::any_cast<uint64_t>(std::get<flag_t>(*verbosityArg).value());
+
+	// If we've been asked for debug output, enable it
+	console.showDebug(verbosity & 1U);
 
 	// Handle the version and help options first
 	const auto *const version{args["version"sv]};
