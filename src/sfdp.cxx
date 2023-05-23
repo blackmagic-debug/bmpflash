@@ -151,7 +151,7 @@ namespace bmpflash::sfdp
 		return {pageSize, sectorSize, sectorEraseOpcode, capacity};
 	}
 
-	std::optional<spiFlash_t> spiFlashRead(const bmp_t &probe)
+	std::optional<spiFlash_t> read(const bmp_t &probe)
 	{
 		console.info("Reading SFDP data for device"sv);
 		sfdpHeader_t header{};

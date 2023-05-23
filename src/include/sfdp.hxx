@@ -11,7 +11,7 @@ namespace bmpflash::sfdp
 	using bmpflash::spiFlash::spiFlash_t;
 
 	bool readAndDisplay(const bmp_t &probe);
-	std::optional<spiFlash_t> spiFlashRead(const bmp_t &probe);
+	std::optional<spiFlash_t> read(const bmp_t &probe);
 } // namespace bmpflash::sfdp
 
 #endif /*SFDP_HXX*/

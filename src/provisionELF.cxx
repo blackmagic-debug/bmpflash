@@ -13,6 +13,7 @@
 #include <substrate/buffer_utils>
 #include "provisionELF.hxx"
 #include "crc32.hxx"
+#include "sfdp.hxx"
 
 using namespace std::literals::string_view_literals;
 using substrate::asHex_t;
@@ -185,6 +186,13 @@ namespace bmpflash::elf
 			elfHeader.version() != version_t::current)
 		{
 			console.error("File does not contain a valid firmware image"sv);
+			return false;
+		}
+
+		const auto spiFlash{sfdp::read(probe)};
+		if (!spiFlash)
+		{
+			console.error("Could not setup SPI Flash control structures"sv);
 			return false;
 		}
 
