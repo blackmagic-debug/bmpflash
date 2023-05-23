@@ -6,6 +6,9 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <substrate/span>
+
+struct bmp_t;
 
 namespace bmpflash::spiFlash
 {
@@ -78,6 +81,8 @@ namespace bmpflash::spiFlash
 
 	constexpr inline uint8_t spiStatusBusy{1};
 	constexpr inline uint8_t spiStatusWriteEnabled{2};
+
+	[[nodiscard]] bool writeBlock(const bmp_t &probe, size_t address, const substrate::span<uint8_t> &block);
 } // namespace bmpflash::spiFlash
 
 #endif /*SPI_FLASH_HXX*/
