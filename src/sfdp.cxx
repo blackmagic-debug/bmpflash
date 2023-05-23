@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#include <cstddef>
+#include <cstdint>
 #include <string_view>
+#include <tuple>
 #include <substrate/console>
 #include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
+#include <substrate/units>
 #include "sfdp.hxx"
 #include "sfdpInternal.hxx"
 #include "units.hxx"
@@ -14,6 +18,7 @@ using substrate::console;
 using substrate::asHex_t;
 using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
+using substrate::operator ""_KiB;
 using bmpflash::utils::humanReadableSize;
 
 namespace bmpflash::sfdp
@@ -120,5 +125,53 @@ namespace bmpflash::sfdp
 		}
 		const auto flashSize{UINT32_C(1) << chipID.capacity};
 		return {flashSize};
+	}
+
+	spiFlash_t readBasicParameterTable(const bmp_t &probe, const uint32_t address, const size_t length)
+	{
+		basicParameterTable_t parameterTable{};
+		if (!sfdpRead(probe, address, &parameterTable, std::min(sizeof(basicParameterTable_t), length)))
+			return {};
+
+		const auto [sectorSize, sectorEraseOpcode]
+		{
+			[&]() -> std::tuple<size_t, uint8_t>
+			{
+				for (const auto &eraseType : parameterTable.eraseTypes)
+				{
+					if (eraseType.eraseSizeExponent != 0U && eraseType.opcode == parameterTable.sectorEraseOpcode)
+						return {eraseType.eraseSize(), eraseType.opcode};
+				}
+				return {4_KiB, parameterTable.sectorEraseOpcode};
+			}()
+		};
+
+		const auto pageSize{parameterTable.programmingAndChipEraseTiming.pageSize()};
+		const auto capacity{parameterTable.flashMemoryDensity.capacity()};
+		return {pageSize, sectorSize, sectorEraseOpcode, capacity};
+	}
+
+	std::optional<spiFlash_t> spiFlashRead(const bmp_t &probe)
+	{
+		console.info("Reading SFDP data for device"sv);
+		sfdpHeader_t header{};
+		if (!sfdpRead(probe, sfdpHeaderAddress, header))
+			return std::nullopt;
+		if (header.magic != sfdpMagic)
+		{
+			console.warn("Failed to read SFDP data, falling back on JEDEC ID"sv);
+			return spiFlashFromID(probe);
+		}
+
+		for (const auto idx : indexSequence_t{header.parameterHeadersCount()})
+		{
+			parameterTableHeader_t tableHeader{};
+			if (!sfdpRead(probe, tableHeaderAddress + (sizeof(parameterTableHeader_t) * idx), tableHeader))
+				return std::nullopt;
+
+			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
+				return readBasicParameterTable(probe, tableHeader.tableAddress, tableHeader.tableLength());
+		}
+		return std::nullopt;
 	}
 } // namespace bmpflash::sfdp

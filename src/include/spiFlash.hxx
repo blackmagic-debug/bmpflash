@@ -25,6 +25,7 @@ namespace bmpflash::spiFlash
 		jedecID = 0x9fU,
 		chipErase = 0xc7U,
 		blockErase = 0xd8U,
+		sectorErase = 0x20U,
 		pageRead = 0x03U,
 		pageAddressRead = 0x13U,
 		pageWrite = 0x02U,
@@ -87,12 +88,18 @@ namespace bmpflash::spiFlash
 	private:
 		uint32_t pageSize_{256};
 		uint32_t sectorSize_{4096};
-		size_t capacity_;
+		size_t capacity_{};
 		uint8_t sectorEraseOpcode_{uint8_t(opcode_t::sectorErase)};
 
 	public:
-		constexpr spiFlash_t(const size_t capacity) : capacity_{capacity} { }
+		constexpr spiFlash_t() noexcept = default;
+		constexpr spiFlash_t(const size_t capacity) noexcept : capacity_{capacity} { }
+		constexpr spiFlash_t(const size_t pageSize, const size_t sectorSize, const uint8_t sectorEraseOpcode,
+			const size_t capacity) noexcept : pageSize_{static_cast<uint32_t>(pageSize)},
+				sectorSize_{static_cast<uint32_t>(sectorSize)}, capacity_{capacity},
+				sectorEraseOpcode_{sectorEraseOpcode} { }
 
+		[[nodiscard]] constexpr auto valid() const noexcept { return capacity_ != 0U; }
 		[[nodiscard]] constexpr auto pageSize() const noexcept { return pageSize_; }
 		[[nodiscard]] constexpr auto sectorSize() const noexcept { return sectorSize_; }
 		[[nodiscard]] constexpr auto capacity() const noexcept { return capacity_; }
