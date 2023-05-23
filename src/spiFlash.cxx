@@ -21,7 +21,7 @@ namespace bmpflash::spiFlash
 		{
 			if (!probe.read(spiFlashCommand_t::readStatus, 0U, &status, sizeof(status)))
 			{
-				console.error("Failed to read on-board Flash status"sv);
+				console.error("Failed to read SPI Flash status"sv);
 				return false;
 			}
 		}
@@ -36,7 +36,7 @@ namespace bmpflash::spiFlash
 			!probe.runCommand(spiFlashCommand_t::sectorErase, static_cast<uint32_t>(address)) ||
 			!waitFlashIdle(probe))
 		{
-			console.error("Failed to prepare on-board Flash block for writing"sv);
+			console.error("Failed to prepare SPI Flash block for writing"sv);
 			return false;
 		}
 		// Then loop through each write page worth of data in the block
@@ -45,7 +45,7 @@ namespace bmpflash::spiFlash
 			// Try to enable write
 			if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U))
 			{
-				console.error("Failed to prepare on-board Flash block for writing"sv);
+				console.error("Failed to prepare SPI Flash block for writing"sv);
 				return false;
 			}
 			// Then run the page programming command with the block of data
@@ -55,7 +55,7 @@ namespace bmpflash::spiFlash
 			if (!probe.write(spiFlashCommand_t::pageProgram, static_cast<uint32_t>(address + offset),
 				subspan.data(), subspan.size()) || !waitFlashIdle(probe))
 			{
-				console.error("Failed to write data to on-board Flash at offset +0x"sv, asHex_t{address + offset});
+				console.error("Failed to write data to SPI Flash at offset +0x"sv, asHex_t{address + offset});
 				return false;
 			}
 		}
