@@ -248,6 +248,7 @@ namespace bmpflash
 			return false;
 		}
 
+		console.info("Reading back SPI Flash chip contents"sv);
 		const auto capacity{spiFlash->capacity()};
 		std::array<uint8_t, 4_KiB> buffer{};
 		for (const auto address : indexSequence_t{capacity}.step(buffer.size()))
