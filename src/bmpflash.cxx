@@ -135,6 +135,8 @@ int main(const int argCount, const char *const *const argList)
 				return bmpflash::provision(*device, action.arguments());
 			if (action.value() == "read"sv)
 				return bmpflash::read(*device, action.arguments());
+			if (action.value() == "write"sv)
+				return bmpflash::write(*device, action.arguments());
 			return false;
 		}()
 	};

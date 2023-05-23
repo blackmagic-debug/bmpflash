@@ -272,4 +272,62 @@ namespace bmpflash
 		console.info("SPI Flash chip read complete"sv);
 		return probe->end();
 	}
+
+	bool write(const usbDevice_t &device, const arguments_t &writeArguments)
+	{
+		// Try to begin communications with the BMP
+		auto probe{beginComms(device, std::get<flag_t>(*writeArguments["bus"sv]))};
+		// If we got good comms, then try and identify the Flash
+		if (!probe || !identifyFlash(*probe))
+			return false;
+
+		auto spiFlash{sfdp::read(*probe)};
+		if (!spiFlash)
+		{
+			console.error("Could not setup SPI Flash control structures"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+		const auto capacity{spiFlash->capacity()};
+
+		const fd_t file{std::any_cast<path>(std::get<flag_t>(*writeArguments["fileName"sv]).value()),
+			O_RDONLY | O_NOCTTY};
+		if (!file.valid())
+		{
+			console.error("Failed to open input file"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+		const auto fileLength{static_cast<size_t>(file.length())};
+		if (file.length() < 0 || fileLength > capacity)
+		{
+			console.error("Unable to assertain file length or it exeeds the target Flash's capacity"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+
+		console.info("Writing file contents to SPI Flash chip"sv);
+		std::array<uint8_t, 4_KiB> buffer{};
+		for (const auto address : indexSequence_t{fileLength}.step(buffer.size()))
+		{
+			const auto amount{std::min(fileLength - address, buffer.size())};
+			const span subspan{buffer.data(), amount};
+			if (!file.read(subspan.data(), subspan.size()))
+			{
+				console.error("Failed to read data block from input file"sv);
+				[[maybe_unused]] const auto result{probe->end()};
+				return false;
+			}
+			if (!spiFlash->writeBlock(*probe, address, subspan))
+			{
+				console.error("Failed to write data block to target SPI Flash"sv);
+				[[maybe_unused]] const auto result{probe->end()};
+				return false;
+			}
+		}
+
+		// Finish up by cleaning up the session
+		console.info("SPI Flash chip write complete"sv);
+		return probe->end();
+	}
 } // namespace bmpflash
