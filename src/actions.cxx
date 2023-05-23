@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#define SUBSTRATE_ALLOW_STD_FILESYSTEM_PATH
+
 #include <string>
 #include <string_view>
+#include <substrate/span>
+#include <substrate/fd>
+#include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
 #include <substrate/console>
+#include <substrate/units>
 #include "actions.hxx"
 #include "flashVendors.hxx"
 #include "sfdp.hxx"
@@ -14,7 +20,12 @@
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 using std::filesystem::path;
+using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
+using substrate::span;
+using substrate::fd_t;
+using substrate::normalMode;
+using substrate::operator ""_KiB;
 using bmpflash::utils::humanReadableSize;
 using elfProvision_t = bmpflash::elf::provision_t;
 
@@ -209,6 +220,56 @@ namespace bmpflash
 
 		// Finish up by cleaning up the session
 		console.info("Repacking and provisioning complete"sv);
+		return probe->end();
+	}
+
+	bool read(const usbDevice_t &device, const arguments_t &readArguments)
+	{
+		// Try to begin communications with the BMP
+		auto probe{beginComms(device, std::get<flag_t>(*readArguments["bus"sv]))};
+		// If we got good comms, then try and identify the Flash
+		if (!probe || !identifyFlash(*probe))
+			return false;
+
+		auto spiFlash{sfdp::read(*probe)};
+		if (!spiFlash)
+		{
+			console.error("Could not setup SPI Flash control structures"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+
+		fd_t file{std::any_cast<path>(std::get<flag_t>(*readArguments["fileName"sv]).value()),
+			O_WRONLY | O_CREAT | O_NOCTTY, normalMode};
+		if (!file.valid())
+		{
+			console.error("Failed to open output file"sv);
+			[[maybe_unused]] const auto result{probe->end()};
+			return false;
+		}
+
+		const auto capacity{spiFlash->capacity()};
+		std::array<uint8_t, 4_KiB> buffer{};
+		for (const auto address : indexSequence_t{capacity}.step(buffer.size()))
+		{
+			const auto amount{std::min(capacity - address, buffer.size())};
+			const span subspan{buffer.data(), amount};
+			if (!spiFlash->readBlock(*probe, address, subspan))
+			{
+				console.error("SPI Flash readout failed"sv);
+				[[maybe_unused]] const auto result{probe->end()};
+				return false;
+			}
+			if (!file.write(subspan.data(), subspan.size()))
+			{
+				console.error("Failed to write data block to output file"sv);
+				[[maybe_unused]] const auto result{probe->end()};
+				return false;
+			}
+		}
+
+		// Finish up by cleaning up the session
+		console.info("SPI Flash chip read complete"sv);
 		return probe->end();
 	}
 } // namespace bmpflash

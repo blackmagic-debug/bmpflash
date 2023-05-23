@@ -123,6 +123,8 @@ int main(const int argCount, const char *const *const argList)
 				return bmpflash::displaySFDP(*device, action.arguments());
 			if (action.value() == "provision"sv)
 				return bmpflash::provision(*device, action.arguments());
+			if (action.value() == "read"sv)
+				return bmpflash::read(*device, action.arguments());
 			return false;
 		}()
 	};

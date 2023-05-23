@@ -24,6 +24,7 @@ namespace bmpflash
 
 	[[nodiscard]] bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments);
 	[[nodiscard]] bool provision(const usbDevice_t &device, const arguments_t &provisionArguments);
+	[[nodiscard]] bool read(const usbDevice_t &device, const arguments_t &provisionArguments);
 } // namespace bmpflash
 
 #endif /*ACTIONS_HXX*/
