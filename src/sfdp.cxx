@@ -107,4 +107,18 @@ namespace bmpflash::sfdp
 		}
 		return true;
 	}
+
+	std::optional<spiFlash_t> spiFlashFromID(const bmp_t &probe)
+	{
+		const auto chipID{probe.identifyFlash()};
+		// If we got a bad all-highs read back, or the capacity is 0, then there's no device there.
+		if ((chipID.manufacturer == 0xffU && chipID.type == 0xffU && chipID.capacity == 0xffU) ||
+			chipID.capacity == 0U)
+		{
+			console.error("Failed to read JEDEC ID"sv);
+			return std::nullopt;
+		}
+		const auto flashSize{UINT32_C(1) << chipID.capacity};
+		return {flashSize};
+	}
 } // namespace bmpflash::sfdp

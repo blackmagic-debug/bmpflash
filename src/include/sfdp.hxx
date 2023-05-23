@@ -2,10 +2,14 @@
 #ifndef SFDP_HXX
 #define SFDP_HXX
 
+#include <optional>
+#include "spiFlash.hxx"
 #include "bmp.hxx"
 
 namespace bmpflash::sfdp
 {
+	using bmpflash::spiFlash::spiFlash_t;
+
 	bool readAndDisplay(const bmp_t &probe);
 } // namespace bmpflash::sfdp
 

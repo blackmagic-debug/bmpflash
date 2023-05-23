@@ -82,6 +82,23 @@ namespace bmpflash::spiFlash
 	constexpr inline uint8_t spiStatusBusy{1};
 	constexpr inline uint8_t spiStatusWriteEnabled{2};
 
+	struct spiFlash_t final
+	{
+	private:
+		uint32_t pageSize_{256};
+		uint32_t sectorSize_{4096};
+		size_t capacity_;
+		uint8_t sectorEraseOpcode_{uint8_t(opcode_t::sectorErase)};
+
+	public:
+		constexpr spiFlash_t(const size_t capacity) : capacity_{capacity} { }
+
+		[[nodiscard]] constexpr auto pageSize() const noexcept { return pageSize_; }
+		[[nodiscard]] constexpr auto sectorSize() const noexcept { return sectorSize_; }
+		[[nodiscard]] constexpr auto capacity() const noexcept { return capacity_; }
+		[[nodiscard]] constexpr auto sectorEraseOpcode() const noexcept { return sectorEraseOpcode_; }
+	};
+
 	[[nodiscard]] bool writeBlock(const bmp_t &probe, size_t address, const substrate::span<uint8_t> &block);
 } // namespace bmpflash::spiFlash
 
