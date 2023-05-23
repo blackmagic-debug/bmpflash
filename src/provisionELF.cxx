@@ -21,6 +21,7 @@ using substrate::indexSequence_t;
 using substrate::indexedIterator_t;
 using substrate::operator ""_KiB;
 using substrate::buffer_utils::writeLE;
+using bmpflash::spiFlash::spiFlash_t;
 
 namespace bmpflash::elf
 {
@@ -119,8 +120,8 @@ namespace bmpflash::elf
 		return static_cast<uint32_t>((offset + (4_KiB - 1U)) & ~(4_KiB - 1U));
 	}
 
-	bool packSection(const elf_t &file, const bmp_t &probe, flashHeader_t &flashHeader, const size_t sectionIndex,
-		const segmentMap_t &segmentMap)
+	bool packSection(const elf_t &file, const bmp_t &probe, spiFlash_t &spiFlash, flashHeader_t &flashHeader,
+		const size_t sectionIndex, const segmentMap_t &segmentMap)
 	{
 		const auto &sectHeader{file.sectionHeaders()[sectionIndex]};
 		const auto sectName{file.sectionNames().stringFromOffset(sectHeader.nameOffset())};
@@ -165,7 +166,7 @@ namespace bmpflash::elf
 				segmentBuffer[idx] = 0xffU;
 
 			const auto blockOffset{flashSection.offset + offset};
-			if (!bmpflash::spiFlash::writeBlock(probe, blockOffset, segmentBuffer))
+			if (!spiFlash.writeBlock(probe, blockOffset, segmentBuffer))
 			{
 				console.error("Failed to write segment data for 0x"sv, asHex_t{sectHeader.address()}, "+0x"sv,
 					asHex_t{offset}, " to the on-board Flash at offset +"sv, asHex_t{blockOffset});
@@ -189,7 +190,7 @@ namespace bmpflash::elf
 			return false;
 		}
 
-		const auto spiFlash{sfdp::read(probe)};
+		auto spiFlash{sfdp::read(probe)};
 		if (!spiFlash)
 		{
 			console.error("Could not setup SPI Flash control structures"sv);
@@ -207,13 +208,13 @@ namespace bmpflash::elf
 
 		for (const auto &headerIndex : substrate::indexSequence_t{sectHeaderCount})
 		{
-			if (!packSection(file, probe, flashHeader, headerIndex, *segmentMap))
+			if (!packSection(file, probe, *spiFlash, flashHeader, headerIndex, *segmentMap))
 				return false;
 		}
 
 		block_t headerBuffer{};
 		if (!flashHeader.toPage(headerBuffer) ||
-			!bmpflash::spiFlash::writeBlock(probe, 0U, headerBuffer))
+			!spiFlash->writeBlock(probe, 0U, headerBuffer))
 		{
 			console.error("Failed to write the Flash header to the on-board Flash"sv);
 			return false;

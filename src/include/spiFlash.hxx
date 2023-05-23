@@ -104,9 +104,10 @@ namespace bmpflash::spiFlash
 		[[nodiscard]] constexpr auto sectorSize() const noexcept { return sectorSize_; }
 		[[nodiscard]] constexpr auto capacity() const noexcept { return capacity_; }
 		[[nodiscard]] constexpr auto sectorEraseOpcode() const noexcept { return sectorEraseOpcode_; }
-	};
 
-	[[nodiscard]] bool writeBlock(const bmp_t &probe, size_t address, const substrate::span<uint8_t> &block);
+		[[nodiscard]] bool waitFlashIdle(const bmp_t &probe);
+		[[nodiscard]] bool writeBlock(const bmp_t &probe, size_t address, const substrate::span<uint8_t> &block);
+	};
 } // namespace bmpflash::spiFlash
 
 #endif /*SPI_FLASH_HXX*/
