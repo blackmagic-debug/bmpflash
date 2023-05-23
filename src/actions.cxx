@@ -239,7 +239,7 @@ namespace bmpflash
 			return false;
 		}
 
-		fd_t file{std::any_cast<path>(std::get<flag_t>(*readArguments["fileName"sv]).value()),
+		const fd_t file{std::any_cast<path>(std::get<flag_t>(*readArguments["fileName"sv]).value()),
 			O_WRONLY | O_CREAT | O_NOCTTY, normalMode};
 		if (!file.valid())
 		{
