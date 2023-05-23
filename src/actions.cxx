@@ -206,7 +206,6 @@ namespace bmpflash
 		if (!elf.valid())
 		{
 			console.error("Cannot read requested file as an ELF binary"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 		// Now try and provision the requested binary to the on-board Flash
@@ -214,7 +213,6 @@ namespace bmpflash
 		if (!elf.repack(*probe))
 		{
 			console.error("Failed to successfully repack ELF file"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 
@@ -235,7 +233,6 @@ namespace bmpflash
 		if (!spiFlash)
 		{
 			console.error("Could not setup SPI Flash control structures"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 
@@ -244,7 +241,6 @@ namespace bmpflash
 		if (!file.valid())
 		{
 			console.error("Failed to open output file"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 
@@ -258,13 +254,11 @@ namespace bmpflash
 			if (!spiFlash->readBlock(*probe, address, subspan))
 			{
 				console.error("SPI Flash readout failed"sv);
-				[[maybe_unused]] const auto result{probe->end()};
 				return false;
 			}
 			if (!file.write(subspan.data(), subspan.size()))
 			{
 				console.error("Failed to write data block to output file"sv);
-				[[maybe_unused]] const auto result{probe->end()};
 				return false;
 			}
 		}
@@ -286,7 +280,6 @@ namespace bmpflash
 		if (!spiFlash)
 		{
 			console.error("Could not setup SPI Flash control structures"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 		const auto capacity{spiFlash->capacity()};
@@ -296,14 +289,12 @@ namespace bmpflash
 		if (!file.valid())
 		{
 			console.error("Failed to open input file"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 		const auto fileLength{static_cast<size_t>(file.length())};
 		if (file.length() < 0 || fileLength > capacity)
 		{
 			console.error("Unable to assertain file length or it exeeds the target Flash's capacity"sv);
-			[[maybe_unused]] const auto result{probe->end()};
 			return false;
 		}
 
@@ -316,13 +307,11 @@ namespace bmpflash
 			if (!file.read(subspan.data(), subspan.size()))
 			{
 				console.error("Failed to read data block from input file"sv);
-				[[maybe_unused]] const auto result{probe->end()};
 				return false;
 			}
 			if (!spiFlash->writeBlock(*probe, address, subspan))
 			{
 				console.error("Failed to write data block to target SPI Flash"sv);
-				[[maybe_unused]] const auto result{probe->end()};
 				return false;
 			}
 		}
