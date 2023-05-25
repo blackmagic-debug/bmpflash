@@ -71,7 +71,12 @@ fmt = subproject(
 	'fmt_dep'
 )
 
-libusb = dependency('libusb-1.0', version: '>=1.0.21', native: true)
+libusb = dependency(
+	'libusb-1.0',
+	version: '>=1.0.21',
+	method: 'pkg-config',
+	fallback: 'libusb'
+)
 
 subdir('include')
 
