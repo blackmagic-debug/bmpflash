@@ -107,7 +107,7 @@ private:
 				static_cast<uint32_t>(timeout.count()))
 		};
 
-		if (result)
+		if (result && result != LIBUSB_ERROR_TIMEOUT)
 		{
 			const auto endpointNumber{uint8_t(endpoint & 0x7FU)};
 			const auto direction{endpointDir_t(endpoint & 0x80U)};
@@ -131,7 +131,7 @@ private:
 				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr,
 				static_cast<uint32_t>(timeout.count()))
 		};
-		if (result)
+		if (result && result != LIBUSB_ERROR_TIMEOUT)
 		{
 			const auto endpointNumber{uint8_t(endpoint & 0x7FU)};
 			const auto direction{endpointDir_t(endpoint & 0x80U)};
