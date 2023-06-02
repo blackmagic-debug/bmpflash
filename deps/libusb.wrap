@@ -4,4 +4,4 @@ revision = blackmagic/meson
 clone-recursive = false
 
 [provide]
-libusb = libusb_dep
+libusb-1.0 = libusb_dep
