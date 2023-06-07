@@ -57,7 +57,7 @@ namespace bmpflash::elf
 	using segmentMap_t = std::map<uint64_t, const programHeader_t &>;
 	using block_t = std::array<uint8_t, 4_KiB>;
 
-	provision_t::provision_t(const path &fileName) noexcept : file{fd_t{fileName.c_str(), O_RDONLY | O_NOCTTY}} { }
+	provision_t::provision_t(const path &fileName) noexcept : file{fd_t{fileName, O_RDONLY | O_NOCTTY}} { }
 
 	bool provision_t::valid() const noexcept
 	{
