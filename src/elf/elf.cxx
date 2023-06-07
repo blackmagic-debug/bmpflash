@@ -4,6 +4,11 @@
 #include <substrate/index_sequence>
 #include "elf.hxx"
 
+// Pull in the mmap_t constants on Windows
+#if _WIN32
+using namespace substrate::constants;
+#endif
+
 namespace bmpflash::elf
 {
 	using bmpflash::elf::io::match_t;
