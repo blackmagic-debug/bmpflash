@@ -29,7 +29,13 @@ namespace bmpflash
 	{
 		console.info("bmpflash - Black Magic Probe companion utility for SPI Flash provisioning and usage"sv);
 		console.writeln();
+		console.writeln("Usage:"sv);
+		console.writeln("\tbmpflash [options] {action} [actionOptions]"sv);
+		console.writeln();
 		programOptions.displayHelp();
+		console.writeln();
+		console.writeln("This utility is licened under BSD-3-Clause"sv);
+		console.writeln("Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv);
 	}
 }
 
