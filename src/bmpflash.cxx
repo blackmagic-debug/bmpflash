@@ -23,6 +23,16 @@ using substrate::commandLine::parseArguments;
 arguments_t args{};
 uint64_t verbosity{0U};
 
+namespace bmpflash
+{
+	void displayHelp() noexcept
+	{
+		console.info("bmpflash - Black Magic Probe companion utility for SPI Flash provisioning and usage"sv);
+		console.writeln();
+		programOptions.displayHelp();
+	}
+}
+
 [[nodiscard]] auto findBMPs(const usbContext_t &context)
 {
 	std::vector<usbDevice_t> devices{};
@@ -78,7 +88,7 @@ int main(const int argCount, const char *const *const argList)
 	// Display the help if requested or there were no command line options given
 	if (help || args.count() == 0U)
 	{
-		// bmpflash::displayHelp();
+		bmpflash::displayHelp();
 		return 0;
 	}
 
@@ -87,7 +97,7 @@ int main(const int argCount, const char *const *const argList)
 	if (!actionArg)
 	{
 		console.error("Action to perform must be specified"sv);
-		// bmpflash::displayHelp();
+		bmpflash::displayHelp();
 		return 1;
 	}
 	const auto &action{std::get<choice_t>(*actionArg)};
