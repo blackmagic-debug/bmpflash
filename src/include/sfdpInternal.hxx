@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include "defs.hxx"
 
 namespace bmpflash::sfdp
 {
@@ -86,13 +87,14 @@ namespace bmpflash::sfdp
 		}
 	};
 
-	struct [[gnu::packed]] timingsAndOpcode_t
+BEGIN_PACKED(1)
+	struct ATTR_PACKED timingsAndOpcode_t
 	{
 		uint8_t timings{};
 		uint8_t opcode{};
 	};
 
-	struct [[gnu::packed]] eraseParameters_t
+	struct ATTR_PACKED eraseParameters_t
 	{
 		uint8_t eraseSizeExponent{};
 		uint8_t opcode{};
@@ -100,6 +102,7 @@ namespace bmpflash::sfdp
 		[[nodiscard]] uint64_t eraseSize() const noexcept
 			{ return UINT64_C(1) << eraseSizeExponent; }
 	};
+END_PACKED()
 
 	struct programmingAndChipEraseTiming_t
 	{
