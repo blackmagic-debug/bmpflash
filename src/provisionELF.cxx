@@ -233,7 +233,7 @@ namespace bmpflash::elf
 
 	bool flashHeader_t::toPage(span<uint8_t> pageBuffer) const noexcept try
 	{
-		std::fill(pageBuffer.begin(), pageBuffer.end(), 0xffU);
+		std::fill(pageBuffer.begin(), pageBuffer.end(), static_cast<uint8_t>(0xffU));
 		copyInto(pageBuffer.subspan(0, 4), flashMagic);
 		writeLE(static_cast<uint32_t>(sections.size()), pageBuffer.subspan(8, 4));
 
