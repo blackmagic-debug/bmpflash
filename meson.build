@@ -10,7 +10,9 @@ project(
 		'buildtype=release',
 		'strip=true',
 		'b_debug=if-release',
-		'b_lto=true'
+		'b_lto=true',
+ 		# libusb needs to pass functions to/from C++ land
+		'cpp_eh=s',
 	],
 	version: '0.0.1',
 	meson_version: '>= 0.63',
