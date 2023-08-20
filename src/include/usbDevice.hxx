@@ -211,7 +211,8 @@ public:
 		std::array<uint8_t, 512> stringData{};
 		const auto result
 		{
-			libusb_get_string_descriptor(device, stringIndex, languageID, stringData.data(), stringData.size())
+			libusb_get_string_descriptor(device, stringIndex, languageID, stringData.data(),
+				static_cast<int>(stringData.size()))
 		};
 		// Check for USB errors and report them
 		if (result < 0)
