@@ -88,10 +88,19 @@ bmpflashSrc = [
 
 subdir('elf')
 
+bmpflashCppArgs = ['-D_FORTIFY_SOURCE=2']
+if host_machine.system() == 'windows'
+	# libusb includes an unguarded windows.h header.
+	bmpflashCppArgs += [
+		'-DNOMINMAX',
+		'-DWIN32_LEAN_AND_MEAN',
+	]
+endif
+
 bmpflash = executable(
 	'bmpflash',
 	bmpflashSrc,
-	cpp_args: ['-D_FORTIFY_SOURCE=2'],
+	cpp_args: bmpflashCppArgs,
 	include_directories: [include_directories('include', 'include/elf')],
 	dependencies: [substrate, fmt, libusb],
 	gnu_symbol_visibility: 'inlineshidden'
