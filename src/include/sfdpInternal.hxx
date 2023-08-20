@@ -78,7 +78,7 @@ namespace bmpflash::sfdp
 				[=]() -> size_t
 				{
 					if (isExponential())
-						return 1U << value();
+						return UINT64_C(1) << value();
 					return value() + 1U;
 				}()
 			};
@@ -97,7 +97,8 @@ namespace bmpflash::sfdp
 		uint8_t eraseSizeExponent{};
 		uint8_t opcode{};
 
-		[[nodiscard]] size_t eraseSize() const noexcept { return 1U << eraseSizeExponent; }
+		[[nodiscard]] size_t eraseSize() const noexcept
+			{ return UINT64_C(1) << eraseSizeExponent; }
 	};
 
 	struct programmingAndChipEraseTiming_t
@@ -108,7 +109,7 @@ namespace bmpflash::sfdp
 		[[nodiscard]] size_t pageSize() const noexcept
 		{
 			const uint8_t pageSizeExponent = programmingTimingRatioAndPageSize >> 4U;
-			return 1U << pageSizeExponent;
+			return UINT64_C(1) << pageSizeExponent;
 		}
 	};
 
