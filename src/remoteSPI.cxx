@@ -102,35 +102,35 @@ uint64_t bmp_t::readProtocolVersion() const
 	return version.fromHex();
 }
 
-bool bmp_t::begin(const spiBus_t bus, const spiDevice_t device) noexcept
+bool bmp_t::begin(const spiBus_t spiBus, const spiDevice_t spiDevice) noexcept
 {
-	const auto request{fmt::format(remoteSPIBegin, uint8_t(bus))};
+	const auto request{fmt::format(remoteSPIBegin, uint8_t(spiBus))};
 	writePacket(request);
 	const auto response{readPacket()};
 	if (response[0] == remoteResponseOK)
 	{
-		spiBus = bus;
-		spiDevice = device;
+		_spiBus = spiBus;
+		_spiDevice = spiDevice;
 	}
 	return response[0] == remoteResponseOK;
 }
 
 bool bmp_t::end() noexcept
 {
-	const auto request{fmt::format(remoteSPIEnd, uint8_t(spiBus))};
+	const auto request{fmt::format(remoteSPIEnd, uint8_t(_spiBus))};
 	writePacket(request);
 	const auto response{readPacket()};
 	if (response[0] == remoteResponseOK)
 	{
-		spiBus = spiBus_t::none;
-		spiDevice = spiDevice_t::none;
+		_spiBus = spiBus_t::none;
+		_spiDevice = spiDevice_t::none;
 	}
 	return response[0] == remoteResponseOK;
 }
 
 spiFlashID_t bmp_t::identifyFlash() const
 {
-	const auto request{fmt::format(remoteSPIChipID, uint8_t(spiBus), uint8_t(spiDevice))};
+	const auto request{fmt::format(remoteSPIChipID, uint8_t(_spiBus), uint8_t(_spiDevice))};
 	writePacket(request);
 	const auto response{readPacket()};
 	if (response[0] != remoteResponseOK)
@@ -151,7 +151,7 @@ bool bmp_t::read(const spiFlashCommand_t command, const uint32_t address, void *
 	if (dataLength > UINT16_MAX)
 		return false;
 
-	const auto request{fmt::format(remoteSPIRead, uint8_t(spiBus), uint8_t(spiDevice), uint16_t(command),
+	const auto request{fmt::format(remoteSPIRead, uint8_t(_spiBus), uint8_t(_spiDevice), uint16_t(command),
 		address & 0x00ffffffU, dataLength)};
 	writePacket(request);
 	const auto response{readPacket()};
@@ -179,7 +179,7 @@ bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const
 	{
 		static_cast<size_t>
 		(
-			fmt::format_to_n(request.begin(), request.size(), remoteSPIWrite, uint8_t(spiBus), uint8_t(spiDevice),
+			fmt::format_to_n(request.begin(), request.size(), remoteSPIWrite, uint8_t(_spiBus), uint8_t(_spiDevice),
 			uint16_t(command), address & 0x00ffffffU, dataLength).out - request.begin()
 		)
 	};
@@ -198,7 +198,7 @@ bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const
 
 bool bmp_t::runCommand(const spiFlashCommand_t command, const uint32_t address) const
 {
-	const auto request{fmt::format(remoteSPICommand, uint8_t(spiBus), uint8_t(spiDevice), uint16_t(command),
+	const auto request{fmt::format(remoteSPICommand, uint8_t(_spiBus), uint8_t(_spiDevice), uint16_t(command),
 		address & 0x00ffffffU)};
 	writePacket(request);
 	const auto response{readPacket()};
