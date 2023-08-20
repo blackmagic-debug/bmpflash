@@ -5,6 +5,7 @@
 #define USB_TYPES_HXX
 
 #include <cstdint>
+#include "defs.hxx"
 
 enum class endpointDir_t : uint8_t
 {
@@ -105,13 +106,15 @@ namespace usb::descriptors
 			descriptorSubtype_t subtype;
 		};
 
-		struct [[gnu::packed]] headerDescriptor_t final
+	BEGIN_PACKED(1)
+		struct ATTR_PACKED headerDescriptor_t final
 		{
 			uint8_t length;
 			descriptorType_t type;
 			descriptorSubtype_t subtype;
 			uint16_t cdcVersion;
 		};
+	END_PACKED()
 
 		struct callManagementDescriptor_t final
 		{
