@@ -95,9 +95,9 @@ namespace bmpflash::spiFlash
 	public:
 		constexpr spiFlash_t() noexcept = default;
 		constexpr spiFlash_t(const size_t capacity) noexcept : capacity_{capacity} { }
-		constexpr spiFlash_t(const size_t pageSize, const size_t sectorSize, const uint8_t sectorEraseOpcode,
-			const size_t capacity) noexcept : pageSize_{static_cast<uint32_t>(pageSize)},
-				sectorSize_{static_cast<uint32_t>(sectorSize)}, capacity_{capacity},
+		constexpr spiFlash_t(const uint64_t pageSize, const uint64_t sectorSize, const uint8_t sectorEraseOpcode,
+			const uint64_t capacity) noexcept : pageSize_{static_cast<uint32_t>(pageSize)},
+				sectorSize_{static_cast<uint32_t>(sectorSize)}, capacity_{static_cast<size_t>(capacity)},
 				sectorEraseOpcode_{sectorEraseOpcode} { }
 
 		[[nodiscard]] constexpr auto valid() const noexcept { return capacity_ != 0U; }

@@ -61,7 +61,8 @@ namespace bmpflash::sfdp
 			return false;
 
 		console.info("Basic parameter table:");
-		const auto [capacityValue, capacityUnits] = humanReadableSize(parameterTable.flashMemoryDensity.capacity());
+		const auto [capacityValue, capacityUnits] =
+			humanReadableSize(static_cast<size_t>(parameterTable.flashMemoryDensity.capacity()));
 		console.info("-> capacity "sv, capacityValue, capacityUnits);
 		console.info("-> program page size: "sv, parameterTable.programmingAndChipEraseTiming.pageSize());
 		console.info("-> sector erase opcode: "sv, asHex_t<2, '0'>(parameterTable.sectorEraseOpcode));
@@ -71,7 +72,7 @@ namespace bmpflash::sfdp
 			console.info("\t-> "sv, idx + 1U, ": "sv, nullptr);
 			if (eraseType.eraseSizeExponent != 0U)
 			{
-				const auto [sizeValue, sizeUnits] = humanReadableSize(eraseType.eraseSize());
+				const auto [sizeValue, sizeUnits] = humanReadableSize(static_cast<size_t>(eraseType.eraseSize()));
 				console.writeln("opcode "sv, asHex_t<2, '0'>(eraseType.opcode), ", erase size: "sv,
 					sizeValue, sizeUnits);
 			}
@@ -135,7 +136,7 @@ namespace bmpflash::sfdp
 
 		const auto [sectorSize, sectorEraseOpcode]
 		{
-			[&]() -> std::tuple<size_t, uint8_t>
+			[&]() -> std::tuple<uint64_t, uint8_t>
 			{
 				for (const auto &eraseType : parameterTable.eraseTypes)
 				{
