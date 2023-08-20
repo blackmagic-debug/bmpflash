@@ -154,7 +154,7 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 
 bmp_t::~bmp_t() noexcept
 {
-	if (spiBus != spiBus_t::none)
+	if (_spiBus != spiBus_t::none)
 		static_cast<void>(end());
 	if (ctrlInterfaceNumber != UINT8_MAX)
 		// Send a SET_CONTROL_LINE_STATE control request to reset the interface
@@ -175,8 +175,8 @@ void bmp_t::swap(bmp_t &probe) noexcept
 	std::swap(dataInterfaceNumber, probe.dataInterfaceNumber);
 	std::swap(txEndpoint, probe.txEndpoint);
 	std::swap(rxEndpoint, probe.rxEndpoint);
-	std::swap(spiBus, probe.spiBus);
-	std::swap(spiDevice, probe.spiDevice);
+	std::swap(_spiBus, probe._spiBus);
+	std::swap(_spiDevice, probe._spiDevice);
 }
 
 void bmp_t::writePacket(const std::string_view &packet) const
