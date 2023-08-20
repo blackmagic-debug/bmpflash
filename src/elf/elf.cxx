@@ -5,7 +5,7 @@
 #include "elf.hxx"
 
 // Pull in the mmap_t constants on Windows
-#if _WIN32
+#ifdef _WIN32
 using namespace substrate::constants;
 #endif
 
