@@ -68,16 +68,16 @@ extendedWarnings = [
 	# -Wno-inline
 	'-wd4710', # 'identifier': function not inlined
 	'-wd4711', # function 'identifier' selected for automatic inline expansion
+	'-wd4514', # 'identifier': unreferenced inline function has been removed
 
 	# -Wunused
-	'-w34514', # 'identifier': unreferenced inline function has been removed
 	'-w35264', # 'identifier': 'const' variable is not used
 
 	# -Wundef
 	'-w34668', # '___cplusplus' is not defined as a preprocessor macro, replacing with '0' for '#if/#elif''
 
 	# -Wpacked -- disabling because MSVC uses pragmas for packing
-	'-w34820', # 'identifier': 'X' bytes padding added after data member 'identifier'
+	'-wd4820', # 'identifier': 'X' bytes padding added after data member 'identifier'
 
 	# -Wignored-qualifiers
 	'-w35266', # 'const' qualifier on return type has no effect
@@ -89,11 +89,11 @@ extendedWarnings = [
 	'-w34061', # enumerator 'identifier' in switch of enum 'identifier' is not explicitly handled by a case label
 
 	# -Wdefaulted-function-deleted
-	'-w34625', # 'identifier': copy constructor was implicitly defined as deleted
-	'-w34626', # 'identifier': assignment operator was implicitly defined as deleted
-	'-w34623', # 'identifier': default constructor was implicitly defined as deleted
-	'-w35026', # 'identifier': move constructor was implicitly defined as deleted
-	'-w35027', # 'identifier': move assignment operator was implicitly defined as deleted
+	'-wd4625', # 'identifier': copy constructor was implicitly defined as deleted
+	'-wd4626', # 'identifier': assignment operator was implicitly defined as deleted
+	'-wd4623', # 'identifier': default constructor was implicitly defined as deleted
+	'-wd5026', # 'identifier': move constructor was implicitly defined as deleted
+	'-wd5027', # 'identifier': move assignment operator was implicitly defined as deleted
 
 	# -Wdeprecated(-copy)
 	'-w35267', # definition of implicit copy constructor for 'identifier' is deprecated because it has a user-provided destructor'
