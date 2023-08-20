@@ -71,11 +71,11 @@ namespace bmpflash::sfdp
 			{ return uint32_t((data[3] & 0x7fU) << 24U) | uint32_t(data[2] << 16U) | uint32_t(data[1] << 8U) | data[0]; }
 
 	public:
-		[[nodiscard]] size_t capacity() const noexcept
+		[[nodiscard]] uint64_t capacity() const noexcept
 		{
 			const auto bits
 			{
-				[=]() -> size_t
+				[=]() -> uint64_t
 				{
 					if (isExponential())
 						return UINT64_C(1) << value();
@@ -97,7 +97,7 @@ namespace bmpflash::sfdp
 		uint8_t eraseSizeExponent{};
 		uint8_t opcode{};
 
-		[[nodiscard]] size_t eraseSize() const noexcept
+		[[nodiscard]] uint64_t eraseSize() const noexcept
 			{ return UINT64_C(1) << eraseSizeExponent; }
 	};
 
@@ -106,7 +106,7 @@ namespace bmpflash::sfdp
 		uint8_t programmingTimingRatioAndPageSize{};
 		std::array<uint8_t, 3> eraseTimings;
 
-		[[nodiscard]] size_t pageSize() const noexcept
+		[[nodiscard]] uint64_t pageSize() const noexcept
 		{
 			const uint8_t pageSizeExponent = programmingTimingRatioAndPageSize >> 4U;
 			return UINT64_C(1) << pageSizeExponent;
