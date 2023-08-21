@@ -20,7 +20,8 @@ public:
 	[[nodiscard]] auto valid() const noexcept { return endpoint != nullptr; }
 	[[nodiscard]] auto direction() const noexcept
 		{ return static_cast<endpointDir_t>(endpoint->bEndpointAddress & ~endpointDirMask); }
-	[[nodiscard]] uint8_t address() const noexcept { return endpoint->bEndpointAddress & endpointDirMask; }
+	[[nodiscard]] auto address() const noexcept
+		{ return static_cast<uint8_t>(endpoint->bEndpointAddress & endpointDirMask); }
 };
 
 #endif /*USB_ENDPOINT_HXX*/
