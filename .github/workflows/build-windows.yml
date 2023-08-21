@@ -39,6 +39,15 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
+      - name: Install OpenCppCoverage
+        if: github.repository == 'blackmagic-debug/bmpflash'
+        uses: crazy-max/ghaction-chocolatey@v2.1.0
+        with:
+          args: install OpenCppCoverage
+      - name: Setup OpenCppCoverage
+        if: github.repository == 'blackmagic-debug/bmpflash'
+        run: |
+          echo "C:/Program Files/OpenCppCoverage" >> $env:GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -57,13 +66,34 @@ jobs:
           meson --version
           ninja --version
       - name: Configure
-        run: meson setup build --prefix=$HOME/.local
+        run: meson setup build --prefix=$HOME/.local $BUILD_OPTS
       - name: Build
         run: meson compile -C build
       - name: Test
         run: meson test -C build
       - name: Install
         run: meson install -C build
+      - name: Run coverage build
+        if: github.repository == 'blackmagic-debug/bmpflash'
+        run: |
+          Remove-Item -Recurse build
+          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug -Ddefault_library=static
+          meson compile -C build
+          meson test -C build
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            ${{ github.workspace }}/build/meson-logs
+            ${{ github.workspace }}/build/test
+          retention-days: 5
+      - name: Codecov
+        if: success() && github.repository == 'blackmagic-debug/bmpflash'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build-windows-mingw:
     name: '${{ matrix.os }} (${{ matrix.sys }})'
@@ -89,27 +119,37 @@ jobs:
           path-type: inherit
           pacboy: >-
             toolchain:p
+            lcov:p
       - name: Runtime environment
         env:
           WORKSPACE: ${{ github.workspace }}
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "GITHUB_WORKSPACE=${{ env.WORKSPACE }}" >> $GITHUB_ENV
+      - name: Setup GCC
+        if: startsWith(matrix.sys, 'mingw') || startsWith(matrix.sys, 'ucrt64')
+        run: |
+          echo "GCOV=gcov" >> $GITHUB_ENV
+      - name: Setup Clang
+        if: startsWith(matrix.sys, 'clang')
+        run: |
+          echo "GCOV=llvm-cov gcov" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v3
         with:
           lfs: true
           submodules: true
-      - name: Setup Meson + Ninja
+      - name: Setup Meson + Ninja + gcovr
         shell: bash
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install meson ninja
+          python3 -m pip install meson ninja gcovr
         working-directory: ${{ runner.temp }}
       - name: Version tools
         run: |
           cc --version
           c++ --version
+          $GCOV --version
           meson --version
           ninja --version
       - name: Configure
@@ -120,3 +160,26 @@ jobs:
         run: meson test -C build
       - name: Install
         run: meson install -C build
+      - name: Run coverage build
+        if: github.repository == 'blackmagic-debug/bmpflash'
+        # Codecov no longer parses gcov files automatically
+        run: |
+          rm -rf build
+          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug
+          meson compile -C build
+          meson test -C build
+          ninja -C build coverage-xml
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.sys }}
+          path: ${{ github.workspace }}/build/meson-logs/*
+          retention-days: 5
+      - name: Codecov
+        if: success() && github.repository == 'blackmagic-debug/bmpflash'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./build/meson-logs/
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
