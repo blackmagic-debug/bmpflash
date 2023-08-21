@@ -1,0 +1,122 @@
+name: Build Windows
+
+on:
+  push:
+    branches-ignore:
+      - 'coverityScan'
+  pull_request:
+    branches:
+      - 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    name: '${{ matrix.os }} (msvc ${{ matrix.arch }})'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - windows-2022
+        arch:
+          - x86
+          - amd64
+      fail-fast: false
+    env:
+      CC: cl.exe
+      CXX: cl.exe
+      LD: link.exe
+    steps:
+      - name: Runtime environment
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "${env:HOME}/.local/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "GITHUB_WORKSPACE=${{ env.WORKSPACE }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Setup compiler
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup Meson + Ninja
+        shell: bash
+        run: |
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install meson ninja
+        working-directory: ${{ runner.temp }}
+      - name: Version tools
+        run: |
+          cl /Bv
+          link
+          meson --version
+          ninja --version
+      - name: Configure
+        run: meson setup build --prefix=$HOME/.local
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build
+      - name: Install
+        run: meson install -C build
+
+  build-windows-mingw:
+    name: '${{ matrix.os }} (${{ matrix.sys }})'
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+        sys:
+          - mingw64
+          - ucrt64
+          - clang64
+      fail-fast: false
+    steps:
+      - name: Use MinGW from MSYS
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.sys }}
+          update: true
+          path-type: inherit
+          pacboy: >-
+            toolchain:p
+      - name: Runtime environment
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "GITHUB_WORKSPACE=${{ env.WORKSPACE }}" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup Meson + Ninja
+        shell: bash
+        run: |
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install meson ninja
+        working-directory: ${{ runner.temp }}
+      - name: Version tools
+        run: |
+          cc --version
+          c++ --version
+          meson --version
+          ninja --version
+      - name: Configure
+        run: meson build --prefix=$HOME/.local
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build
+      - name: Install
+        run: meson install -C build
