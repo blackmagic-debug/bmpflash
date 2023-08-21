@@ -1,0 +1,113 @@
+name: Build Linux
+
+on:
+  push:
+    branches-ignore:
+      - 'coverityScan'
+  pull_request:
+    branches:
+      - 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-linux:
+    name: '${{ matrix.os.id }} (${{ matrix.compiler }})'
+    runs-on: ${{ matrix.os.id }}
+    strategy:
+      matrix:
+        os:
+          - { id: ubuntu-22.04, name: jammy }
+        compiler:
+          - 'clang-13'
+          - 'clang-15'
+          - 'clang-16'
+          - 'clang-17'
+          - 'gcc-9'
+          - 'gcc-11'
+          - 'gcc-12'
+          - 'gcc-13'
+      fail-fast: false
+    steps:
+      - name: Runtime environment
+        shell: bash
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "GITHUB_WORKSPACE=`pwd`" >> $GITHUB_ENV
+      - name: Setup GCC
+        if: startsWith(matrix.compiler, 'gcc')
+        shell: bash
+        run: |
+          CXX=${CC/#gcc/g++}
+          sudo apt-add-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install $CC $CXX
+          echo "CC=$CC" >> $GITHUB_ENV
+          echo "CXX=$CXX" >> $GITHUB_ENV
+        env:
+          CC: ${{ matrix.compiler }}
+      - name: Setup Clang
+        if: startsWith(matrix.compiler, 'clang')
+        shell: bash
+        run: |
+          wget https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo apt-key add llvm-snapshot.gpg.key
+          rm llvm-snapshot.gpg.key
+          sudo apt-add-repository "deb https://apt.llvm.org/${{ matrix.os.name }}/ llvm-toolchain-${{ matrix.os.name }}${CC/#clang/} main"
+          sudo apt-get update
+          sudo apt-get install $CC
+          CXX=${CC/#clang/clang++}
+          echo "CC=$CC" >> $GITHUB_ENV
+          echo "CXX=$CXX" >> $GITHUB_ENV
+        env:
+          CC: ${{ matrix.compiler }}
+        working-directory: ${{ runner.temp }}
+      - name: Remove old LLVM 12 plugins
+        if: matrix.compiler != 'clang-12'
+        run: |
+          sudo apt purge llvm-12-linker-tools
+      - name: Remove old LLVM 13 plugins
+        if: matrix.compiler != 'clang-13'
+        run: |
+          sudo apt purge llvm-13-linker-tools
+      - name: Remove old LLVM 14 plugins
+        if: matrix.compiler != 'clang-14'
+        run: |
+          sudo apt purge llvm-14-linker-tools
+      - name: Remove old LLVM 15 plugins
+        if: matrix.compiler != 'clang-15'
+        run: |
+          sudo apt purge llvm-15-linker-tools
+      - name: Install dependencies
+        shell: bash
+        run: sudo apt-get install libudev-dev
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup Meson + Ninja
+        shell: bash
+        run: |
+          sudo python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --user meson ninja
+        working-directory: ${{ runner.temp }}
+      - name: Version tools
+        shell: bash
+        run: |
+          $CC --version
+          $CXX --version
+          meson --version
+          ninja --version
+      - name: Configure
+        run: meson setup build --prefix=$HOME/.local
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build
+      - name: Install
+        run: meson install -C build
