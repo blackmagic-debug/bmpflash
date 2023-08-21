@@ -58,7 +58,7 @@ public:
 		return *this;
 	}
 
-	[[nodiscard]] bool valid() const noexcept { return context; }
+	[[nodiscard]] auto valid() const noexcept { return context != nullptr; }
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] usbDeviceList_t deviceList() const noexcept
