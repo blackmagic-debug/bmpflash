@@ -14,8 +14,8 @@
 #define ATTR_PACKED [[gnu::packed]]
 #elif defined(_MSC_VER)
 #define STRINGIFY(n) #n
-#define BEGIN_PACKED(n) _Pragma("push(pack, " STRINGIFY(n) ")")
-#define END_PACKED() _Pragma("pop(pack)")
+#define BEGIN_PACKED(n) __pragma(pack(push, n))
+#define END_PACKED() __pragma(pack(pop))
 #define ATTR_PACKED
 #endif
 
