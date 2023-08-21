@@ -60,7 +60,14 @@ public:
 	constexpr requestType_t(const recipient_t recipient, const request_t type) noexcept :
 		requestType_t{recipient, type, endpointDir_t::controllerOut} { }
 	constexpr requestType_t(const recipient_t recipient, const request_t type, const endpointDir_t direction) noexcept :
-		value(static_cast<uint8_t>(recipient) | static_cast<uint8_t>(type) | static_cast<uint8_t>(direction)) { }
+		value
+		{
+			static_cast<uint8_t>(
+				static_cast<uint8_t>(recipient) |
+				static_cast<uint8_t>(type) |
+				static_cast<uint8_t>(direction)
+			)
+		} { }
 
 	void recipient(const recipient_t recipient) noexcept
 	{

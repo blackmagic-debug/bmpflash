@@ -14,8 +14,8 @@ enum class endpointDir_t : uint8_t
 };
 
 constexpr static const uint8_t endpointDirMask{0x7fU};
-constexpr inline uint8_t endpointAddress(const endpointDir_t dir, const uint8_t number) noexcept
-	{ return uint8_t(dir) | (number & endpointDirMask); }
+constexpr inline auto endpointAddress(const endpointDir_t dir, const uint8_t number) noexcept
+	{ return static_cast<uint8_t>(static_cast<uint8_t>(dir) | static_cast<uint8_t>(number & endpointDirMask)); }
 
 // This code is borrowed from dragonUSB
 namespace usb::descriptors
@@ -179,8 +179,8 @@ namespace usb::types::cdc
 		rtsActivate = 2U,
 	};
 
-	constexpr inline uint16_t operator |(const controlLines_t lhs, const controlLines_t rhs) noexcept
-		{ return uint16_t(lhs) | uint16_t(rhs); }
+	constexpr inline auto operator |(const controlLines_t lhs, const controlLines_t rhs) noexcept
+		{ return static_cast<uint16_t>(static_cast<uint16_t>(lhs) | static_cast<uint16_t>(rhs)); }
 } // namespace usb::types::cdc
 
 #endif /*USB_TYPES_HXX*/
