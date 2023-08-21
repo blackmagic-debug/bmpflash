@@ -48,6 +48,7 @@ jobs:
           sudo apt-get install $CC $CXX
           echo "CC=$CC" >> $GITHUB_ENV
           echo "CXX=$CXX" >> $GITHUB_ENV
+          echo "GCOV=${CC/#gcc/gcov}" >> $GITHUB_ENV
         env:
           CC: ${{ matrix.compiler }}
       - name: Setup Clang
@@ -63,6 +64,7 @@ jobs:
           CXX=${CC/#clang/clang++}
           echo "CC=$CC" >> $GITHUB_ENV
           echo "CXX=$CXX" >> $GITHUB_ENV
+          echo "GCOV=${CC/#clang/llvm-cov} gcov" >> $GITHUB_ENV
         env:
           CC: ${{ matrix.compiler }}
         working-directory: ${{ runner.temp }}
@@ -90,24 +92,48 @@ jobs:
         with:
           lfs: true
           submodules: true
-      - name: Setup Meson + Ninja
+      - name: Setup Meson + Ninja + gcovr
         shell: bash
         run: |
           sudo python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install --user meson ninja
+          python3 -m pip install --user meson ninja gcovr
         working-directory: ${{ runner.temp }}
       - name: Version tools
         shell: bash
         run: |
           $CC --version
           $CXX --version
+          $GCOV --version
           meson --version
           ninja --version
       - name: Configure
-        run: meson setup build --prefix=$HOME/.local
+        run: meson setup build --prefix=$HOME/.local $BUILD_OPTS
       - name: Build
         run: meson compile -C build
       - name: Test
         run: meson test -C build
       - name: Install
         run: meson install -C build
+      - name: Run coverage build
+        if: github.repository == 'blackmagic-debug/bmpflash' && matrix.compiler != 'clang-17'
+        # Codecov no longer parses gcov files automatically
+        run: |
+          rm -rf build
+          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug
+          meson compile -C build
+          meson test -C build
+          ninja -C build coverage-xml
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os.id }}-${{ matrix.compiler }}
+          path: ${{ github.workspace }}/build/meson-logs/*
+          retention-days: 5
+      - name: Codecov
+        if: success() && github.repository == 'blackmagic-debug/bmpflash' && matrix.compiler != 'clang-17'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./build/meson-logs/
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
