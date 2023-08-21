@@ -173,7 +173,7 @@ public:
 		{ autoDetachKernelDriver(true); }
 	// NOLINTNEXTLINE(modernize-use-equals-default)
 	~usbDeviceHandle_t() noexcept { libusb_close(device); }
-	[[nodiscard]] bool valid() const noexcept { return device; }
+	[[nodiscard]] auto valid() const noexcept { return device != nullptr; }
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	void autoDetachKernelDriver(bool autoDetach) const noexcept

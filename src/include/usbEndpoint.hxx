@@ -17,7 +17,7 @@ public:
 	usbEndpoint_t() noexcept = default;
 	usbEndpoint_t(const libusb_endpoint_descriptor *const endpoint_) noexcept : endpoint{endpoint_} { }
 
-	[[nodiscard]] bool valid() const noexcept { return endpoint; }
+	[[nodiscard]] auto valid() const noexcept { return endpoint != nullptr; }
 	[[nodiscard]] auto direction() const noexcept
 		{ return static_cast<endpointDir_t>(endpoint->bEndpointAddress & ~endpointDirMask); }
 	[[nodiscard]] uint8_t address() const noexcept { return endpoint->bEndpointAddress & endpointDirMask; }

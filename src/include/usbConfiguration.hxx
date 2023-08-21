@@ -20,7 +20,7 @@ public:
 	// NOLINTNEXTLINE(modernize-use-equals-default)
 	~usbConfiguration_t() noexcept { libusb_free_config_descriptor(config); }
 
-	[[nodiscard]] bool valid() const noexcept { return config; }
+	[[nodiscard]] auto valid() const noexcept { return config != nullptr; }
 	[[nodiscard]] uint8_t interfaces() const noexcept { return config->bNumInterfaces; }
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
