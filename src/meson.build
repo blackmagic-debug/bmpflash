@@ -134,6 +134,16 @@ libusb = dependency(
 	fallback: 'libusb'
 )
 
+deps = [substrate, fmt, libusb]
+
+if substrate.get_variable('command_line_enabled') == 'false'
+	error('Refusing to build - substrate has not enabled the command line options parser')
+endif
+
+# GCC < 9.1 splits the filesystem module into a separate library
+libstdcppFS = cxx.find_library('stdc++fs', required: false)
+deps += libstdcppFS
+
 subdir('include')
 
 bmpflashSrc = [
@@ -153,11 +163,13 @@ if host_machine.system() == 'windows'
 	]
 endif
 
+bmpflashCppArgs += '-DHAS_FILESYSTEM_PATH'
+
 bmpflash = executable(
 	'bmpflash',
 	bmpflashSrc,
 	cpp_args: bmpflashCppArgs,
 	include_directories: [include_directories('include', 'include/elf')],
-	dependencies: [substrate, fmt, libusb],
+	dependencies: deps,
 	gnu_symbol_visibility: 'inlineshidden'
 )
