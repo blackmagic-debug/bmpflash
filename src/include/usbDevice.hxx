@@ -178,9 +178,21 @@ public:
 	usbDeviceHandle_t() noexcept = default;
 	usbDeviceHandle_t(libusb_device_handle *const device_) noexcept : device{device_}
 		{ autoDetachKernelDriver(true); }
+	usbDeviceHandle_t(const usbDeviceHandle_t &) noexcept = delete;
+	usbDeviceHandle_t(usbDeviceHandle_t &&handle) noexcept : usbDeviceHandle_t{} { swap(handle); }
 	// NOLINTNEXTLINE(modernize-use-equals-default)
 	~usbDeviceHandle_t() noexcept { libusb_close(device); }
+	usbDeviceHandle_t &operator =(const usbDeviceHandle_t &) noexcept = delete;
 	[[nodiscard]] auto valid() const noexcept { return device != nullptr; }
+
+	usbDeviceHandle_t &operator =(usbDeviceHandle_t &&handle) noexcept
+	{
+		swap(handle);
+		return *this;
+	}
+
+	void swap(usbDeviceHandle_t &handle) noexcept
+		{ std::swap(device, handle.device); }
 
 	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	void autoDetachKernelDriver(bool autoDetach) const noexcept
