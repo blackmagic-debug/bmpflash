@@ -112,7 +112,7 @@ namespace bmpflash::elf
 	{
 		// If there are no sections stored yet, the offset of the first is at the start of the second erase block
 		if (flashHeader.sections.empty())
-			return 4_KiB;
+			return static_cast<uint32_t>(4_KiB);
 		// Otherwise, grab the last and compute the next offset
 		const auto &last{flashHeader.sections.back()};
 		const auto offset{last.offset + last.length};
