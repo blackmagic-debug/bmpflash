@@ -73,6 +73,7 @@ namespace bmpflash
 				return spiDevice_t::intFlash;
 			case spiBus_t::external:
 				return spiDevice_t::extFlash;
+			case spiBus_t::none:
 			default:
 				throw std::domain_error{"SPI bus requested is unhandled or unknown"};
 		}
