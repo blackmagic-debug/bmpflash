@@ -36,7 +36,7 @@ namespace bmpflash::elf
 		const auto endian{_header.endian()};
 		const auto programHeaderSize{_header.programHeaderSize()};
 
-		size_t offset{_header.phdrOffset()};
+		auto offset{static_cast<size_t>(_header.phdrOffset())};
 		// Once the elfHeader_t has been read and handled, we then loop through pulling out the program headers.
 		for ([[maybe_unused]] const auto index : substrate::indexSequence_t{_header.programHeaderCount()})
 		{
@@ -109,7 +109,7 @@ namespace bmpflash::elf
 			[&](mmap_t &storage)
 			{
 				const auto &data{toSpan(storage)};
-				return data.subspan(header.offset(), header.fileLength());
+				return data.subspan(static_cast<size_t>(header.offset()), static_cast<size_t>(header.fileLength()));
 			},
 			[&](const fragmentStorage_t &) -> span<uint8_t> { return {}; }
 		}, _backingStorage);
@@ -126,7 +126,7 @@ namespace bmpflash::elf
 			[&](const mmap_t &storage)
 			{
 				const auto &data{toSpan(storage)};
-				return data.subspan(header.offset(), header.fileLength());
+				return data.subspan(static_cast<size_t>(header.offset()), static_cast<size_t>(header.fileLength()));
 			},
 			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
 		}, _backingStorage);
@@ -143,7 +143,7 @@ namespace bmpflash::elf
 			[&](mmap_t &storage)
 			{
 				const auto &data{toSpan(storage)};
-				return data.subspan(header.fileOffset(), header.fileLength());
+				return data.subspan(static_cast<size_t>(header.fileOffset()), static_cast<size_t>(header.fileLength()));
 			},
 			[&](const fragmentStorage_t &) -> span<uint8_t> { return {}; }
 		}, _backingStorage);
@@ -160,7 +160,7 @@ namespace bmpflash::elf
 			[&](const mmap_t &storage)
 			{
 				const auto &data{toSpan(storage)};
-				return data.subspan(header.fileOffset(), header.fileLength());
+				return data.subspan(static_cast<size_t>(header.fileOffset()), static_cast<size_t>(header.fileLength()));
 			},
 			[&](const fragmentStorage_t &) -> span<const uint8_t> { return {}; }
 		}, _backingStorage);
