@@ -111,7 +111,7 @@ END_PACKED()
 
 		[[nodiscard]] uint64_t pageSize() const noexcept
 		{
-			const uint8_t pageSizeExponent = programmingTimingRatioAndPageSize >> 4U;
+			const auto pageSizeExponent{static_cast<uint8_t>(programmingTimingRatioAndPageSize >> 4U)};
 			return UINT64_C(1) << pageSizeExponent;
 		}
 	};
