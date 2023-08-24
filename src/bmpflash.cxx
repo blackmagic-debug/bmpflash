@@ -34,7 +34,7 @@ namespace bmpflash
 		console.writeln();
 		programOptions.displayHelp();
 		console.writeln();
-		console.writeln("This utility is licened under BSD-3-Clause"sv);
+		console.writeln("This utility is licensed under BSD-3-Clause"sv);
 		console.writeln("Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv);
 	}
 }
