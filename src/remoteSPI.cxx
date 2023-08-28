@@ -3,7 +3,19 @@
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
 #include <string>
 #include <string_view>
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4061 4365)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#endif
 #include <fmt/format.h>
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #include <substrate/conversions>
 #include <substrate/span>
 #include <substrate/index_sequence>
@@ -180,7 +192,7 @@ bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const
 		static_cast<size_t>
 		(
 			fmt::format_to_n(request.begin(), request.size(), remoteSPIWrite, uint8_t(_spiBus), uint8_t(_spiDevice),
-			uint16_t(command), address & 0x00ffffffU, dataLength).out - request.begin()
+				uint16_t(command), address & 0x00ffffffU, dataLength).out - request.begin()
 		)
 	};
 	offset += toHex(data, dataLength, substrate::span{request}.subspan(offset, maxPacketSize - offset));
