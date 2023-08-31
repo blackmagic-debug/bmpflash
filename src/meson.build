@@ -3,6 +3,10 @@
 # SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
 cxx = meson.get_compiler('cpp')
 
+if cxx.get_id() == 'msvc' and cxx.version().version_compare('<19.37')
+	error('Your compiler is broken, please upgrade to at least MSVC 2022 release 17.7 to build bmpflash with MSVC.')
+endif
+
 extendedWarnings = [
 	'-Wdouble-promotion',
 	'-Wformat=2',
