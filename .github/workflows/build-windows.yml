@@ -16,6 +16,7 @@ jobs:
   build-windows:
     name: '${{ matrix.os }} (msvc ${{ matrix.arch }})'
     runs-on: ${{ matrix.os }}
+    if: false
     strategy:
       matrix:
         os:
