@@ -83,3 +83,87 @@ jobs:
           directory: ./build/meson-logs/
           files: coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  build-macos-homebrew:
+    # Apple LLD is unable to link GCC < 11 generated object files.
+    # https://stackoverflow.com/questions/73714336/xcode-update-to-version-2395-ld-compile-problem-occurs-computedatomcount-m
+    # rdar://FB11369327
+    name: '${{ matrix.os }} (homebrew, ${{ matrix.compiler }})'
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        os:
+          - macos-11
+        compiler:
+          - gcc@9
+          - gcc@11
+          - gcc@12
+          - gcc@13 # needs hardcoding for the GCOV replacement
+      fail-fast: false
+    steps:
+      - name: Runtime environment
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "GITHUB_WORKSPACE=`pwd`" >> $GITHUB_ENV
+      - name: Setup compiler
+        run: |
+          brew install ${{ matrix.compiler }}
+          CC=${COMPILER/@/-}
+          CXX=${CC/#gcc/g++}
+          echo "CC=$CC" >> $GITHUB_ENV
+          echo "CXX=$CXX" >> $GITHUB_ENV
+          echo "GCOV=${CC/#gcc/gcov}" >> $GITHUB_ENV
+        env:
+          COMPILER: ${{ matrix.compiler }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup Meson + Ninja + gcovr
+        run: |
+          brew install meson ninja gcovr
+        working-directory: ${{ runner.temp }}
+      - name: Version tools
+        shell: bash
+        run: |
+          $CC --version
+          $CXX --version
+          $GCOV --version
+          meson --version
+          ninja --version
+      - name: Configure
+        run: meson setup build --prefix=$HOME/.local $BUILD_OPTS
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build
+      - name: Install
+        run: meson install -C build
+      - name: Run coverage build
+        if: github.repository == 'blackmagic-debug/bmpflash'
+        # Codecov no longer parses gcov files automatically
+        run: |
+          rm -rf build
+          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug
+          meson compile -C build
+          meson test -C build
+          ninja -C build coverage-xml
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-homebrew-${{ matrix.compiler }}
+          path: ${{ github.workspace }}/build/meson-logs/*
+          retention-days: 5
+      - name: Codecov
+        if: success() && github.repository == 'blackmagic-debug/bmpflash'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./build/meson-logs/
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
