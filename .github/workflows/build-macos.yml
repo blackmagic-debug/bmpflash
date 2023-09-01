@@ -1,0 +1,85 @@
+name: Build macOS
+
+on:
+  push:
+    branches-ignore:
+      - 'coverityScan'
+  pull_request:
+    branches:
+      - 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    name: '${{ matrix.os }} (Apple Clang)'
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        os:
+          - macos-12
+          - macos-11
+        build_opts:
+          - ''
+        include:
+          - os: macos-latest
+            build_opts: '-Db_lto=true -Ddefault_library=static'
+      fail-fast: false
+    steps:
+      - name: Runtime environment
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "GITHUB_WORKSPACE=`pwd`" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
+      - name: Setup Meson + Ninja + gcovr
+        run: |
+          brew install meson ninja gcovr
+        working-directory: ${{ runner.temp }}
+      - name: Version tools
+        run: |
+          cc --version  || true
+          ld --version || true
+          gcov --version || true
+          meson --version
+          ninja --version
+      - name: Configure
+        run: meson setup build --prefix=$HOME/.local ${{ matrix.build_opts }}
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build
+      - name: Install
+        run: meson install -C build
+      - name: Run coverage build
+        if: github.repository == 'blackmagic-debug/bmpflash'
+        # Codecov no longer parses gcov files automatically
+        run: |
+          rm -rf build
+          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug ${{ matrix.build_opts }}
+          meson compile -C build
+          meson test -C build
+          ninja -C build coverage-xml
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-appleclang
+          path: ${{ github.workspace }}/build/meson-logs/*
+          retention-days: 5
+      - name: Codecov
+        if: success() && github.repository == 'blackmagic-debug/bmpflash'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./build/meson-logs/
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
