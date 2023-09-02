@@ -9,6 +9,7 @@
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 #include <fmt/format.h>
 #if defined(_MSC_VER)
