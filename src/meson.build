@@ -54,6 +54,7 @@ extendedWarnings = [
 	'-Wswitch-enum',
 	'-Wdefaulted-function-deleted',
 	'-Wdeprecated-copy',
+	'-ftrapv',
 
 	# MSVC unique warnings that are useful
 	'-w35030', # attribute 'gnu::packed' is not recognized
