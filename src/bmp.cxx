@@ -113,7 +113,13 @@ bmp_t::bmp_t(const usbDevice_t &usbDevice) : device{usbDevice.open()}
 	{
 		// Get each interface and inspect the first alt-mode
 		const auto interface{config.interface(idx)};
+		// Check that the interface is valid, skip if not
+		if (!interface.valid())
+			continue;
 		const auto firstAltMode{interface.altMode(0)};
+		// Check that the mode is valid, skip if not
+		if (!firstAltMode.valid())
+			continue;
 
 		// Check if the interface matches the data interface index
 		if (firstAltMode.interfaceNumber() != dataInterfaceNumber)
