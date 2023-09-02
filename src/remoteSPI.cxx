@@ -29,7 +29,7 @@ using substrate::indexSequence_t;
 
 constexpr static auto remoteResponseOK{'K'};
 constexpr static auto remoteResponseParameterError{'P'};
-constexpr static auto remoteResponseError{'E'};
+[[maybe_unused]] constexpr static auto remoteResponseError{'E'};
 constexpr static auto remoteResponseNotSupported{'N'};
 
 #define REMOTE_UINT8  "{:02x}"
