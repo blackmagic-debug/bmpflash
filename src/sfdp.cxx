@@ -54,17 +54,21 @@ namespace bmpflash::sfdp
 		console.info("-> table SFDP address: "sv, uint32_t{header.tableAddress});
 	}
 
-	[[nodiscard]] bool displayBasicParameterTable(const bmp_t &probe, const uint32_t address, const size_t length)
+	[[nodiscard]] bool displayBasicParameterTable(const bmp_t &probe, const parameterTableHeader_t &header)
 	{
 		basicParameterTable_t parameterTable{};
-		if (!sfdpRead(probe, address, &parameterTable, std::min(sizeof(basicParameterTable_t), length)))
+		if (!sfdpRead(probe, header.tableAddress, &parameterTable,
+			std::min(sizeof(basicParameterTable_t), header.tableLength())))
 			return false;
 
 		console.info("Basic parameter table:");
 		const auto [capacityValue, capacityUnits] =
 			humanReadableSize(static_cast<size_t>(parameterTable.flashMemoryDensity.capacity()));
 		console.info("-> capacity "sv, capacityValue, capacityUnits);
-		console.info("-> program page size: "sv, parameterTable.programmingAndChipEraseTiming.pageSize());
+		if (header.versionMajor > 1U || (header.versionMajor == 1U && header.versionMinor >= 5U))
+			console.info("-> program page size: "sv, parameterTable.programmingAndChipEraseTiming.pageSize());
+		else
+			console.info("-> program page size: default (256)"sv);
 		console.info("-> sector erase opcode: "sv, asHex_t<2, '0'>(parameterTable.sectorEraseOpcode));
 		console.info("-> supported erase types:"sv);
 		for (const auto &[idx, eraseType] : indexedIterator_t{parameterTable.eraseTypes})
@@ -107,7 +111,7 @@ namespace bmpflash::sfdp
 			displayTableHeader(tableHeader, idx + 1U);
 			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
 			{
-				if (!displayBasicParameterTable(probe, tableHeader.tableAddress, tableHeader.tableLength()))
+				if (!displayBasicParameterTable(probe, tableHeader))
 					return false;
 			}
 		}
