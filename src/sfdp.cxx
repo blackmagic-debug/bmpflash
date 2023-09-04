@@ -128,10 +128,11 @@ namespace bmpflash::sfdp
 		return {flashSize};
 	}
 
-	spiFlash_t readBasicParameterTable(const bmp_t &probe, const uint32_t address, const size_t length)
+	spiFlash_t readBasicParameterTable(const bmp_t &probe, const parameterTableHeader_t &header)
 	{
 		basicParameterTable_t parameterTable{};
-		if (!sfdpRead(probe, address, &parameterTable, std::min(sizeof(basicParameterTable_t), length)))
+		if (!sfdpRead(probe, header.tableAddress, &parameterTable,
+			std::min(sizeof(basicParameterTable_t), header.tableLength())))
 			return {};
 
 		const auto [sectorSize, sectorEraseOpcode]
@@ -147,7 +148,16 @@ namespace bmpflash::sfdp
 			}()
 		};
 
-		const auto pageSize{parameterTable.programmingAndChipEraseTiming.pageSize()};
+		const auto pageSize
+		{
+			[&]() noexcept -> uint64_t
+			{
+				if (header.versionMajor > 1U || (header.versionMajor == 1U && header.versionMinor >= 5U))
+					return parameterTable.programmingAndChipEraseTiming.pageSize();
+				else
+					return 256U;
+			}()
+		};
 		const auto capacity{parameterTable.flashMemoryDensity.capacity()};
 		return {pageSize, sectorSize, sectorEraseOpcode, capacity};
 	}
@@ -171,7 +181,7 @@ namespace bmpflash::sfdp
 				return std::nullopt;
 
 			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
-				return readBasicParameterTable(probe, tableHeader.tableAddress, tableHeader.tableLength());
+				return readBasicParameterTable(probe, tableHeader);
 		}
 		return std::nullopt;
 	}
