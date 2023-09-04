@@ -17,6 +17,7 @@ static const std::map<uint8_t, std::string_view> flashVendors
 {
 	{0x1f_u8, "Adesto"sv},
 	{0x20_u8, "Numonyx"sv},
+	{0xc2_u8, "Macronix"sv},
 	{0xc8_u8, "GigaDevice"sv},
 	{0xef_u8, "Winbond"sv},
 };
