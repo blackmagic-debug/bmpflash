@@ -40,8 +40,8 @@ namespace bmpflash::sfdp
 	struct sfdpHeader_t
 	{
 		std::array<char, 4> magic{};
-		uint8_t versionMajor{};
 		uint8_t versionMinor{};
+		uint8_t versionMajor{};
 		uint8_t rawParameterHeadersCount{};
 		accessProtocol_t accessProtocol{accessProtocol_t::legacyJESD216B};
 
@@ -51,8 +51,8 @@ namespace bmpflash::sfdp
 	struct parameterTableHeader_t
 	{
 		uint8_t jedecParameterIDLow{};
-		uint8_t versionMajor{};
 		uint8_t versionMinor{};
+		uint8_t versionMajor{};
 		uint8_t tableLengthInU32s{};
 		uint24_t tableAddress{};
 		uint8_t jedecParameterIDHigh{};
