@@ -29,6 +29,7 @@ jobs:
       CC: cl.exe
       CXX: cl.exe
       LD: link.exe
+      BUILD_OPTS: ''
     steps:
       - name: Runtime environment
         env:
@@ -111,6 +112,8 @@ jobs:
           - ucrt64
           - clang64
       fail-fast: false
+    env:
+      BUILD_OPTS: ''
     steps:
       - name: Use MinGW from MSYS
         uses: msys2/setup-msys2@v2
@@ -154,7 +157,7 @@ jobs:
           meson --version
           ninja --version
       - name: Configure
-        run: meson build --prefix=$HOME/.local
+        run: meson build --prefix=$HOME/.local $BUILD_OPTS
       - name: Build
         run: meson compile -C build
       - name: Test
