@@ -30,6 +30,8 @@ jobs:
           - 'gcc-12'
           - 'gcc-13'
       fail-fast: false
+    env:
+      BUILD_OPTS: ''
     steps:
       - name: Runtime environment
         shell: bash
