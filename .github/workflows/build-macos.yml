@@ -27,6 +27,8 @@ jobs:
         build_opts:
           - ''
         include:
+          # static+LTO forced build to uncover any potential symbols issues with Mach-O
+          # single test to save runners as they are scarse and should validate all possible configurations
           - os: macos-latest
             build_opts: '-Db_lto=true -Ddefault_library=static'
       fail-fast: false
