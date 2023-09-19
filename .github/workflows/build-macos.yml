@@ -30,6 +30,8 @@ jobs:
           - os: macos-latest
             build_opts: '-Db_lto=true -Ddefault_library=static'
       fail-fast: false
+    env:
+      BUILD_OPTS: ${{ matrix.build_opts }}
     steps:
       - name: Runtime environment
         env:
@@ -53,7 +55,7 @@ jobs:
           meson --version
           ninja --version
       - name: Configure
-        run: meson setup build --prefix=$HOME/.local ${{ matrix.build_opts }}
+        run: meson setup build --prefix=$HOME/.local $BUILD_OPTS
       - name: Build
         run: meson compile -C build
       - name: Test
@@ -65,7 +67,7 @@ jobs:
         # Codecov no longer parses gcov files automatically
         run: |
           rm -rf build
-          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug ${{ matrix.build_opts }}
+          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug $BUILD_OPTS
           meson compile -C build
           meson test -C build
           ninja -C build coverage-xml
