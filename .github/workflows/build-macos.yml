@@ -94,7 +94,6 @@ jobs:
     # rdar://FB11369327
     name: '${{ matrix.os }} (homebrew, ${{ matrix.compiler }})'
     runs-on: ${{ matrix.os }}
-    if: false
     defaults:
       run:
         shell: bash
@@ -144,7 +143,8 @@ jobs:
           meson --version
           ninja --version
       - name: Configure
-        run: meson setup build --prefix=$HOME/.local $BUILD_OPTS
+        # GCC on macOS cannot do LTO for now due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111635
+        run: meson setup build --prefix=$HOME/.local -Db_lto=false $BUILD_OPTS
       - name: Build
         run: meson compile -C build
       - name: Test
@@ -156,7 +156,7 @@ jobs:
         # Codecov no longer parses gcov files automatically
         run: |
           rm -rf build
-          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug
+          meson setup build --prefix=$HOME/.local -Db_lto=false -Db_coverage=true --buildtype=debug $BUILD_OPTS
           meson compile -C build
           meson test -C build
           ninja -C build coverage-xml
