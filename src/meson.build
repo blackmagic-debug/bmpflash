@@ -3,6 +3,13 @@
 # SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
 cxx = meson.get_compiler('cpp')
 
+if get_option('b_lto') and host_machine.system() == 'darwin' and cxx.get_id() == 'gcc'
+	error(
+		'GCC on macOS does not correctly implement support for LTO, please pass `-Db_lto=false` to Meson\n',
+		'-> See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111635 for details'
+	)
+endif
+
 if cxx.get_id() == 'msvc' and cxx.version().version_compare('<19.37')
 	error('Your compiler is broken, please upgrade to at least MSVC 2022 release 17.7 to build bmpflash with MSVC.')
 endif
