@@ -9,6 +9,11 @@
 #include <exception>
 #include "usbDevice.hxx"
 #include "spiFlash.hxx"
+#ifdef _WIN32
+#include "windows/serialInterface.hxx"
+#else
+#include "libusb/serialInterface.hxx"
+#endif
 
 struct bmpCommsError_t final : std::exception
 {
@@ -39,20 +44,15 @@ using spiFlashCommand_t = bmpflash::spiFlash::command_t;
 struct bmp_t final
 {
 private:
-	usbDeviceHandle_t device{};
-	uint8_t ctrlInterfaceNumber{UINT8_MAX};
-	uint8_t dataInterfaceNumber{UINT8_MAX};
-	uint8_t txEndpoint{};
-	uint8_t rxEndpoint{};
+	serialInterface_t device{};
 	spiBus_t _spiBus{spiBus_t::none};
 	spiDevice_t _spiDevice{spiDevice_t::none};
-	constexpr static size_t maxPacketSize{1024U};
 
 	bmp_t() noexcept = default;
-	void writePacket(const std::string_view &packet) const;
-	[[nodiscard]] std::string readPacket() const;
 
 public:
+	constexpr static size_t maxPacketSize{1024U};
+
 	bmp_t(const usbDevice_t &usbDevice);
 	bmp_t(const bmp_t &) noexcept = delete;
 	bmp_t(bmp_t &&probe) noexcept : bmp_t{} { swap(probe); }
@@ -65,7 +65,7 @@ public:
 		return *this;
 	}
 
-	[[nodiscard]] bool valid() const noexcept { return device.valid() && txEndpoint && rxEndpoint; }
+	[[nodiscard]] bool valid() const noexcept { return device.valid(); }
 	void swap(bmp_t &probe) noexcept;
 
 	[[nodiscard]] std::string init() const;

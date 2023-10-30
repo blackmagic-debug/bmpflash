@@ -91,8 +91,8 @@ size_t toHex(const void *const buffer, const size_t bufferLength, substrate::spa
 std::string bmp_t::init() const
 {
 	// Ask the firmware to initialise its half of remote communications
-	writePacket(remoteInit);
-	const auto response{readPacket()};
+	device.writePacket(remoteInit);
+	const auto response{device.readPacket()};
 	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
 	// Return the firmware version string that pops out from that process
@@ -102,8 +102,8 @@ std::string bmp_t::init() const
 uint64_t bmp_t::readProtocolVersion() const
 {
 	// Send a protocol version request packet
-	writePacket(remoteProtocolVersion);
-	const auto response{readPacket()};
+	device.writePacket(remoteProtocolVersion);
+	const auto response{device.readPacket()};
 	if (response[0] == remoteResponseNotSupported)
 		return 0U;
 	if (response[0] != remoteResponseOK)
@@ -118,8 +118,8 @@ uint64_t bmp_t::readProtocolVersion() const
 bool bmp_t::begin(const spiBus_t spiBus, const spiDevice_t spiDevice) noexcept
 {
 	const auto request{fmt::format(remoteSPIBegin, uint8_t(spiBus))};
-	writePacket(request);
-	const auto response{readPacket()};
+	device.writePacket(request);
+	const auto response{device.readPacket()};
 	if (response[0] == remoteResponseOK)
 	{
 		_spiBus = spiBus;
@@ -131,8 +131,8 @@ bool bmp_t::begin(const spiBus_t spiBus, const spiDevice_t spiDevice) noexcept
 bool bmp_t::end() noexcept
 {
 	const auto request{fmt::format(remoteSPIEnd, uint8_t(_spiBus))};
-	writePacket(request);
-	const auto response{readPacket()};
+	device.writePacket(request);
+	const auto response{device.readPacket()};
 	if (response[0] == remoteResponseOK)
 	{
 		_spiBus = spiBus_t::none;
@@ -144,8 +144,8 @@ bool bmp_t::end() noexcept
 spiFlashID_t bmp_t::identifyFlash() const
 {
 	const auto request{fmt::format(remoteSPIChipID, uint8_t(_spiBus), uint8_t(_spiDevice))};
-	writePacket(request);
-	const auto response{readPacket()};
+	device.writePacket(request);
+	const auto response{device.readPacket()};
 	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
 	const auto chipID{std::string_view{response}.substr(1U)};
@@ -166,8 +166,8 @@ bool bmp_t::read(const spiFlashCommand_t command, const uint32_t address, void *
 
 	const auto request{fmt::format(remoteSPIRead, uint8_t(_spiBus), uint8_t(_spiDevice), uint16_t(command),
 		address & 0x00ffffffU, dataLength)};
-	writePacket(request);
-	const auto response{readPacket()};
+	device.writePacket(request);
+	const auto response{device.readPacket()};
 	// Check if the probe told us we asked for too big a read
 	if (response[0] == remoteResponseParameterError)
 		return false;
@@ -198,8 +198,8 @@ bool bmp_t::write(const spiFlashCommand_t command, const uint32_t address, const
 	};
 	offset += toHex(data, dataLength, substrate::span{request}.subspan(offset, maxPacketSize - offset));
 	request[offset] = '#';
-	writePacket({request.data()});
-	const auto response{readPacket()};
+	device.writePacket({request.data()});
+	const auto response{device.readPacket()};
 	// Check if the probe told us we asked for too big a read
 	if (response[0] == remoteResponseParameterError)
 		return false;
@@ -213,8 +213,8 @@ bool bmp_t::runCommand(const spiFlashCommand_t command, const uint32_t address) 
 {
 	const auto request{fmt::format(remoteSPICommand, uint8_t(_spiBus), uint8_t(_spiDevice), uint16_t(command),
 		address & 0x00ffffffU)};
-	writePacket(request);
-	const auto response{readPacket()};
+	device.writePacket(request);
+	const auto response{device.readPacket()};
 	// Check if the probe returned any kind of error response
 	if (response[0] != remoteResponseOK)
 		throw bmpCommsError_t{};
