@@ -164,6 +164,10 @@ bmpflashSrc = [
 	'spiFlash.cxx', versionHeader,
 ]
 
+if host_machine.system() != 'windows'
+	bmpflashSrc += 'libusb/serialInterface.cxx'
+endif
+
 subdir('elf')
 
 bmpflashCppArgs = ['-D_FORTIFY_SOURCE=2']
