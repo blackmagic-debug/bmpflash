@@ -78,7 +78,7 @@ public:
 	{
 		DWORD valueLength{0U};
 		// Figure out how long the value is, stored into `valueLength`
-		if (const auto result{RegGetValue(handle, nullptr, keyName.data(), RRF_RT_REG_SZ, nullptr, nullptr, &valueLength)};
+		if (const auto result{RegGetValueA(handle, nullptr, keyName.data(), RRF_RT_REG_SZ, nullptr, nullptr, &valueLength)};
 			result != ERROR_SUCCESS && result != ERROR_MORE_DATA)
 		{
 			displayError(result, "retrieve value for key"sv, keyName);
@@ -88,12 +88,16 @@ public:
 		// Allocate a string long enough that has been prefilled with nul characters
 		std::string value(valueLength, '\0');
 		// Retrieve the actual value of the key now we have all the inforamtion needed to do so
-		if (const auto result{RegGetValue(handle, nullptr, keyName.data(), RRF_RT_REG_SZ, nullptr, value.data(),
+		if (const auto result{RegGetValueA(handle, nullptr, keyName.data(), RRF_RT_REG_SZ, nullptr, value.data(),
 			&valueLength)}; result != ERROR_SUCCESS)
 		{
 			displayError(result, "retrieve value for key"sv, keyName);
 			return {};
 		}
+
+		// After, trim trailing nul characters as there will be 1 or 2
+		while (!value.empty() && value.back() == '\0')
+			value.erase(value.end() - 1U);
 		return value;
 	}
 };
