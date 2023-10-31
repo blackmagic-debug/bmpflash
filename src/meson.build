@@ -164,7 +164,9 @@ bmpflashSrc = [
 	'spiFlash.cxx', versionHeader,
 ]
 
-if host_machine.system() != 'windows'
+if host_machine.system() == 'windows'
+	bmpflashSrc += 'windows/serialInterface.cxx'
+else
 	bmpflashSrc += 'libusb/serialInterface.cxx'
 endif
 
