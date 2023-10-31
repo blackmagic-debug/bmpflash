@@ -24,10 +24,11 @@ constexpr static auto uncDeviceSuffix{"\\\\.\\"sv};
 
 void displayError(const LSTATUS error, const std::string_view operation, const std::string_view path)
 {
-	char *message{nullptr};
+	wchar_t *message{nullptr};
 	// Ask Windows to please tell us what the error value we have means, and allocate + store it in `message`
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
-		error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<char *>(&message), 0, nullptr);
+	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
+		static_cast<DWORD>(error), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<wchar_t *>(&message), 0,
+		nullptr);
 	console.error("Failed to "sv, operation, ' ', path, ", got error "sv, asHex_t<8, '0'>{uint32_t(error)},
 		": "sv, message);
 	// Clean up properly after ourselves
@@ -225,10 +226,10 @@ void serialInterface_t::handleDeviceError(const std::string_view operation) noex
 	// If there is no error and no device (we failed to look up the device node), return early
 	if (error == ERROR_SUCCESS && device == INVALID_HANDLE_VALUE)
 		return;
-	char *message{nullptr};
+	wchar_t *message{nullptr};
 	// Ask Windows to please tell us what the error value we have means, and allocate + store it in `message`
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
-		error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<char *>(&message), 0, nullptr);
+	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
+		error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<wchar_t *>(&message), 0, nullptr);
 	console.error("Failed to "sv, operation, " ("sv, asHex_t<8, '0'>{error}, "): "sv, message);
 	// Clean up properly after ourselves
 	LocalFree(message);
