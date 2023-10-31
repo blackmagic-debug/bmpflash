@@ -51,6 +51,8 @@ private:
 	bmp_t() noexcept = default;
 
 public:
+	constexpr static uint16_t vid{0x1d50U};
+	constexpr static uint16_t pid{0x6018U};
 	constexpr static size_t maxPacketSize{1024U};
 
 	bmp_t(const usbDevice_t &usbDevice);
