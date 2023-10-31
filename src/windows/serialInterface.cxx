@@ -251,5 +251,27 @@ void serialInterface_t::writePacket(const std::string_view &packet) const
 
 std::string serialInterface_t::readPacket() const
 {
-	return "";
+	std::array<char, bmp_t::maxPacketSize + 1U> packet{};
+	DWORD read = 0;
+	size_t length{0};
+	for (; length < packet.size(); length += read)
+	{
+		// Due to the protocol's structure, best we can do is reading a single byte at a time.
+		if (!ReadFile(device, packet.data() + length, 1U, &read, nullptr))
+		{
+			console.error("Read from device failed ("sv, GetLastError(), "), read "sv, length, " bytes");
+			throw bmpCommsError_t{};
+		}
+		if (read && packet[length] == '#')
+			break;
+	}
+
+	// Adjust the length to remove the beginning '&' (the ending '#' is already taken care of in the read loop)
+	--length;
+	// Make a new std::string of an appropriate length
+	std::string result(length + 1U, '\0');
+	// And copy the result string in, returning it
+	std::memcpy(result.data(), packet.data() + 1U, length);
+	console.debug("Remote read: "sv, result);
+	return result;
 }
