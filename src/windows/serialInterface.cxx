@@ -233,6 +233,16 @@ void serialInterface_t::swap(serialInterface_t &interface) noexcept
 
 void serialInterface_t::writePacket(const std::string_view &packet) const
 {
+	console.debug("Remote write: "sv, packet);
+	DWORD written{0};
+	for (size_t offset{0}; offset < packet.length(); offset += written)
+	{
+		if (!WriteFile(device, packet.data() + offset, static_cast<DWORD>(packet.length() - offset), &written, nullptr))
+		{
+			console.error("Write to device failed ("sv, GetLastError(), "), written "sv, offset, " bytes");
+			throw bmpCommsError_t{};
+		}
+	}
 }
 
 std::string serialInterface_t::readPacket() const
