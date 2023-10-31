@@ -138,8 +138,76 @@ public:
 	return portName;
 }
 
-serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice)
+serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice) : device
+	{
+		[&]()
+		{
+			// Figure out what the device node is for the requested device
+			const auto portName{findBySerialNumber(usbDevice)};
+			if (portName.empty())
+				return INVALID_HANDLE_VALUE;
+
+			// Try and open the node so we can start communications with the the device
+			return CreateFile
+			(
+				portName.c_str(),                               // UNC path to the target node
+				GENERIC_READ | GENERIC_WRITE,                   // Standard file permissions
+				0,                                              // With no sharing
+				nullptr,                                        // Default security attributes
+				OPEN_EXISTING,                                  // Only succeed if the node already exists
+				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_NO_BUFFERING, // Normal but unbuffered I/O
+				nullptr                                         // No template file
+			);
+		}()
+	}
 {
+	// If opening the device node failed for any reason, error out early
+	if (device == INVALID_HANDLE_VALUE)
+	{
+		handleDeviceError("open device"sv);
+		return;
+	}
+
+	// Get the current device state from the device
+	DCB serialParams{};
+	serialParams.DCBlength = sizeof(DCB);
+	if (!GetCommState(device, &serialParams))
+	{
+		handleDeviceError("access communications state from device"sv);
+		return;
+	}
+
+	// Adjust the device state to enable communications to work and be in the right mode
+	serialParams.fParity = false;
+	serialParams.fOutxCtsFlow = false;
+	serialParams.fOutxDsrFlow = false;
+	serialParams.fDtrControl = DTR_CONTROL_ENABLE;
+	serialParams.fDsrSensitivity = false;
+	serialParams.fOutX = false;
+	serialParams.fInX = false;
+	serialParams.fRtsControl = RTS_CONTROL_DISABLE;
+	serialParams.ByteSize = 8;
+	serialParams.Parity = NOPARITY;
+	if (!SetCommState(device, &serialParams))
+	{
+		handleDeviceError("apply new communications state to device"sv);
+		return;
+	}
+
+	COMMTIMEOUTS timeouts{};
+	timeouts.ReadIntervalTimeout = 10;
+	timeouts.ReadTotalTimeoutConstant = 10;
+	timeouts.ReadTotalTimeoutMultiplier = 10;
+	timeouts.WriteTotalTimeoutConstant = 10;
+	timeouts.WriteTotalTimeoutMultiplier = 10;
+	if (!SetCommTimeouts(device, &timeouts))
+		handleDeviceError("set communications timeouts for device"sv);
+}
+
+serialInterface_t::~serialInterface_t() noexcept
+{
+	if (device != INVALID_HANDLE_VALUE)
+		CloseHandle(device);
 }
 
 void serialInterface_t::handleDeviceError(const std::string_view operation) noexcept
@@ -156,10 +224,6 @@ void serialInterface_t::handleDeviceError(const std::string_view operation) noex
 	if (device != INVALID_HANDLE_VALUE)
 		CloseHandle(device);
 	device = INVALID_HANDLE_VALUE;
-}
-
-serialInterface_t::~serialInterface_t() noexcept
-{
 }
 
 void serialInterface_t::swap(serialInterface_t &interface) noexcept
