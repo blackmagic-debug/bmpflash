@@ -4,6 +4,15 @@
 #include "windows/serialInterface.hxx"
 #include "bmp.hxx"
 
+[[nodiscard]] std::string serialForDevice(const usbDevice_t &device)
+{
+	const auto serialIndex{device.serialNumberIndex()};
+	if (serialIndex == 0)
+		return {};
+	const auto handle{device.open()};
+	return handle.readStringDescriptor(serialIndex);
+}
+
 serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice)
 {
 }
