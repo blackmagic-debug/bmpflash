@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#include <fmt/format.h>
 #include <substrate/console>
 #include "windows/serialInterface.hxx"
 #include "bmp.hxx"
 
 using substrate::console;
+
+constexpr static auto uncDeviceSuffix{"\\\\.\\"sv};
 
 [[nodiscard]] std::string serialForDevice(const usbDevice_t &device)
 {
@@ -80,6 +83,40 @@ public:
 		return value;
 	}
 };
+
+[[nodiscard]] std::string readKeyFromPath(const std::string &subpath, const std::string_view keyName)
+{
+	const hklmRegistryKey_t keyPathHandle
+	{
+		fmt::format("SYSTEM\\CurrentControlSet\\Enum\\USB\\VID_{:04X}&PID_{:04X}{}"sv,
+			bmp_t::vid, bmp_t::pid, subpath), KEY_READ
+	};
+	if (!keyPathHandle.valid())
+		return {};
+	return keyPathHandle.readStringKey(keyName);
+}
+
+[[nodiscard]] std::string findBySerialNumber(const usbDevice_t &device)
+{
+	const auto serialNumber{serialForDevice(device)};
+	if (serialNumber.empty())
+		return {};
+
+	const auto prefix{readKeyFromPath(fmt::format("\\{}"sv, serialNumber), "ParentIdPrefix"sv)};
+	if (prefix.empty())
+		return {};
+	console.debug("Device registry path prefix: "sv, prefix);
+
+	auto portName{readKeyFromPath(fmt::format("&MI_00\\{}&0000\\Device Parameters"sv, prefix), "PortName"sv)};
+	if (portName.empty())
+		return {};
+
+	if (std::string_view{portName}.substr(0, uncDeviceSuffix.size()) != uncDeviceSuffix)
+		portName.insert(0, uncDeviceSuffix);
+
+	console.info("Using "sv, portName, " for BMP remote protocol communications"sv);
+	return portName;
+}
 
 serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice)
 {
