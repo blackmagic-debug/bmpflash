@@ -218,6 +218,9 @@ void serialInterface_t::handleDeviceError(const std::string_view operation) noex
 {
 	// Get the last error that occured
 	const auto error{GetLastError()};
+	// If there is no error and no device (we failed to look up the device node), return early
+	if (error == ERROR_SUCCESS && device == INVALID_HANDLE_VALUE)
+		return;
 	char *message{nullptr};
 	// Ask Windows to please tell us what the error value we have means, and allocate + store it in `message`
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
