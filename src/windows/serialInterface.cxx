@@ -59,6 +59,26 @@ public:
 	}
 
 	[[nodiscard]] bool valid() const noexcept { return handle != INVALID_HANDLE_VALUE; }
+
+	[[nodiscard]] std::string readStringKey(std::string_view keyName) const
+	{
+		DWORD valueLength{0U};
+		if (const auto result{RegGetValue(handle, nullptr, keyName.data(), RRF_RT_REG_SZ, nullptr, nullptr, &valueLength)};
+			result != ERROR_SUCCESS && result != ERROR_MORE_DATA)
+		{
+			displayError(result, "retrieve value for key"sv, keyName);
+			return {};
+		}
+
+		std::string value(valueLength, '\0');
+		if (const auto result{RegGetValue(handle, nullptr, keyName.data(), RRF_RT_REG_SZ, nullptr, value.data(),
+			&valueLength)}; result != ERROR_SUCCESS)
+		{
+			displayError(result, "retrieve value for key"sv, keyName);
+			return {};
+		}
+		return value;
+	}
 };
 
 serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice)
