@@ -142,6 +142,22 @@ serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice)
 {
 }
 
+void serialInterface_t::handleDeviceError(const std::string_view operation) noexcept
+{
+	// Get the last error that occured
+	const auto error{GetLastError()};
+	char *message{nullptr};
+	// Ask Windows to please tell us what the error value we have means, and allocate + store it in `message`
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
+		error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<char *>(&message), 0, nullptr);
+	console.error("Failed to "sv, operation, " ("sv, asHex_t<8, '0'>{error}, "): "sv, message);
+	// Clean up properly after ourselves
+	LocalFree(message);
+	if (device != INVALID_HANDLE_VALUE)
+		CloseHandle(device);
+	device = INVALID_HANDLE_VALUE;
+}
+
 serialInterface_t::~serialInterface_t() noexcept
 {
 }
