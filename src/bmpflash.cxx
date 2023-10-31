@@ -44,7 +44,7 @@ namespace bmpflash
 	std::vector<usbDevice_t> devices{};
 	for (auto device : context.deviceList())
 	{
-		if (device.vid() == 0x1d50U && device.pid() == 0x6018U)
+		if (device.vid() == bmp_t::vid && device.pid() == bmp_t::pid)
 		{
 			console.info("Found BMP at USB address "sv, device.busNumber(), '-', device.portNumber());
 			devices.emplace_back(std::move(device));
