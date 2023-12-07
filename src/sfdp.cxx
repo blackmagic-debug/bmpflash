@@ -9,6 +9,8 @@
 #include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
 #include <substrate/units>
+#include <substrate/span>
+#include "bmp.hxx"
 #include "sfdp.hxx"
 #include "sfdpInternal.hxx"
 #include "units.hxx"
@@ -30,11 +32,38 @@ namespace bmpflash::sfdp
 	constexpr static uint16_t basicSPIParameterTable{0xFF00U};
 
 	[[nodiscard]] bool sfdpRead(const bmp_t &probe, const uint32_t address, void *const data,
-			const size_t dataLength)
-		{ return probe.read(spiFlashCommand_t::readSFDP, address, data, dataLength); }
+			const size_t dataLength, const bool displayRaw)
+	{
+		const auto result{probe.read(spiFlashCommand_t::readSFDP, address, data, dataLength)};
+		// Check if we should display the raw data
+		if (displayRaw)
+		{
+			console.info("Raw data for read:"sv);
+			// Turn the buffer into a span so we can iterate through the raw bytes
+			substrate::span sfdpData{reinterpret_cast<const uint8_t *>(data), dataLength};
+			// Write the data out in blocks of 8 bytes per line
+			for (const auto &[index, value] : indexedIterator_t{sfdpData})
+			{
+				// If we should start a new line, output a start of line marker
+				if ((index & 7U) == 0)
+				{
+					// Output a new line to terminate the previous
+					if (index)
+						console.writeln();
+					// The trailing nullptr suppresses the automatic new line
+					console.info(asHex_t<6, '0'>{address + index}, ": "sv, nullptr);
+				}
+				console.writeln(asHex_t<2, '0'>{value}, ' ', nullptr);
+			}
+			// Complete the display by completing the last line with a new line
+			console.writeln();
+		}
+		return result;
+	}
 
-	template<typename T> [[nodiscard]] bool sfdpRead(const bmp_t &probe, const uintptr_t address, T &buffer)
-			{ return sfdpRead(probe, static_cast<uint32_t>(address), &buffer, sizeof(T)); }
+	template<typename T> [[nodiscard]] bool sfdpRead(const bmp_t &probe, const uintptr_t address, T &buffer,
+		const bool displayRaw)
+			{ return sfdpRead(probe, static_cast<uint32_t>(address), &buffer, sizeof(T), displayRaw); }
 
 	void displayHeader(const sfdpHeader_t &header)
 	{
@@ -54,11 +83,12 @@ namespace bmpflash::sfdp
 		console.info("-> table SFDP address: "sv, uint32_t{header.tableAddress});
 	}
 
-	[[nodiscard]] bool displayBasicParameterTable(const bmp_t &probe, const parameterTableHeader_t &header)
+	[[nodiscard]] bool displayBasicParameterTable(const bmp_t &probe, const parameterTableHeader_t &header,
+		const bool displayRaw)
 	{
 		basicParameterTable_t parameterTable{};
 		if (!sfdpRead(probe, header.tableAddress, &parameterTable,
-			std::min(sizeof(basicParameterTable_t), header.tableLength())))
+			std::min(sizeof(basicParameterTable_t), header.tableLength()), displayRaw))
 			return false;
 
 		console.info("Basic parameter table:");
@@ -88,11 +118,11 @@ namespace bmpflash::sfdp
 		return true;
 	}
 
-	bool readAndDisplay(const bmp_t &probe)
+	bool readAndDisplay(const bmp_t &probe, const bool displayRaw)
 	{
 		console.info("Reading SFDP data for device"sv);
 		sfdpHeader_t header{};
-		if (!sfdpRead(probe, sfdpHeaderAddress, header))
+		if (!sfdpRead(probe, sfdpHeaderAddress, header, displayRaw))
 			return false;
 		if (header.magic != sfdpMagic)
 		{
@@ -106,13 +136,13 @@ namespace bmpflash::sfdp
 		for (const auto idx : indexSequence_t{header.parameterHeadersCount()})
 		{
 			parameterTableHeader_t tableHeader{};
-			if (!sfdpRead(probe, tableHeaderAddress + (sizeof(parameterTableHeader_t) * idx), tableHeader))
+			if (!sfdpRead(probe, tableHeaderAddress + (sizeof(parameterTableHeader_t) * idx), tableHeader, displayRaw))
 				return false;
 			displayTableHeader(tableHeader, idx + 1U);
 			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
 			{
 				tableHeader.validate();
-				if (!displayBasicParameterTable(probe, tableHeader))
+				if (!displayBasicParameterTable(probe, tableHeader, displayRaw))
 					return false;
 			}
 		}
@@ -137,7 +167,7 @@ namespace bmpflash::sfdp
 	{
 		basicParameterTable_t parameterTable{};
 		if (!sfdpRead(probe, header.tableAddress, &parameterTable,
-			std::min(sizeof(basicParameterTable_t), header.tableLength())))
+			std::min(sizeof(basicParameterTable_t), header.tableLength()), false))
 			return {};
 
 		const auto [sectorSize, sectorEraseOpcode]
@@ -170,7 +200,7 @@ namespace bmpflash::sfdp
 	{
 		console.info("Reading SFDP data for device"sv);
 		sfdpHeader_t header{};
-		if (!sfdpRead(probe, sfdpHeaderAddress, header))
+		if (!sfdpRead(probe, sfdpHeaderAddress, header, false))
 			return std::nullopt;
 		if (header.magic != sfdpMagic)
 		{
@@ -181,7 +211,7 @@ namespace bmpflash::sfdp
 		for (const auto idx : indexSequence_t{header.parameterHeadersCount()})
 		{
 			parameterTableHeader_t tableHeader{};
-			if (!sfdpRead(probe, tableHeaderAddress + (sizeof(parameterTableHeader_t) * idx), tableHeader))
+			if (!sfdpRead(probe, tableHeaderAddress + (sizeof(parameterTableHeader_t) * idx), tableHeader, false))
 				return std::nullopt;
 
 			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
