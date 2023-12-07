@@ -3,14 +3,18 @@
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
 #include <cstddef>
 #include <cstdint>
+#include <cinttypes>
 #include <string_view>
+#include <array>
 #include <tuple>
+#include <optional>
 #include <substrate/console>
 #include <substrate/index_sequence>
 #include <substrate/indexed_iterator>
 #include <substrate/units>
 #include <substrate/span>
 #include "bmp.hxx"
+#include "spiFlash.hxx"
 #include "sfdp.hxx"
 #include "sfdpInternal.hxx"
 #include "units.hxx"
