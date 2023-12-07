@@ -188,7 +188,7 @@ namespace bmpflash
 			return false;
 
 		// Ask for the SFDP data and display it then clean up
-		sfdp::readAndDisplay(*probe);
+		sfdp::readAndDisplay(*probe, sfdpArguments["display-raw"sv] != nullptr);
 		return probe->end();
 	}
 

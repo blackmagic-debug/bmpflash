@@ -10,7 +10,7 @@ namespace bmpflash::sfdp
 {
 	using bmpflash::spiFlash::spiFlash_t;
 
-	bool readAndDisplay(const bmp_t &probe);
+	bool readAndDisplay(const bmp_t &probe, bool displayRaw);
 	std::optional<spiFlash_t> read(const bmp_t &probe);
 } // namespace bmpflash::sfdp
 
