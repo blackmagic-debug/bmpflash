@@ -59,6 +59,19 @@ namespace bmpflash
 		)
 	};
 
+	constexpr static auto sfdpOptions
+	{
+		options
+		(
+			deviceOptions,
+			option_t
+			{
+				optionFlagPair_t{"-r"sv, "--display-raw"sv},
+				"Dispaly the raw SFDP data read from the device as it's read"sv
+			}
+		)
+	};
+
 	constexpr static auto provisioningOptions{options(serialOption, fileOption)};
 	constexpr static auto generalFlashOptions{options(deviceOptions, fileOption)};
 
@@ -74,7 +87,7 @@ namespace bmpflash
 			{
 				"sfdp"sv,
 				"Display the SFDP (Serial Flash Discoverable Parameters) information for a Flash chip"sv,
-				deviceOptions,
+				sfdpOptions,
 			},
 			{
 				"provision"sv,
