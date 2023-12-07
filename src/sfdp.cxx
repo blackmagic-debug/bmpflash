@@ -111,6 +111,7 @@ namespace bmpflash::sfdp
 			displayTableHeader(tableHeader, idx + 1U);
 			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
 			{
+				tableHeader.validate();
 				if (!displayBasicParameterTable(probe, tableHeader))
 					return false;
 			}
@@ -158,8 +159,7 @@ namespace bmpflash::sfdp
 			{
 				if (header.versionMajor > 1U || (header.versionMajor == 1U && header.versionMinor >= 5U))
 					return parameterTable.programmingAndChipEraseTiming.pageSize();
-				else
-					return 256U;
+				return 256U;
 			}()
 		};
 		const auto capacity{parameterTable.flashMemoryDensity.capacity()};
@@ -185,7 +185,10 @@ namespace bmpflash::sfdp
 				return std::nullopt;
 
 			if (tableHeader.jedecParameterID() == basicSPIParameterTable)
+			{
+				tableHeader.validate();
 				return readBasicParameterTable(probe, tableHeader);
+			}
 		}
 		return std::nullopt;
 	}
@@ -224,6 +227,50 @@ namespace bmpflash::sfdp
 			default:
 				console.warn("Unknown SFDP version v"sv, versionMajor, '.', versionMinor, ", assuming valid size"sv);
 				return tableLength();
+		}
+	}
+
+	void parameterTableHeader_t::validate() noexcept
+	{
+		const auto expectedLength{lengthForVersion()};
+		const auto actualLength{tableLength()};
+		// If the table is the proper length for the version, we're done
+		if (actualLength == expectedLength)
+			return;
+
+		// If the table is longer than it should be for the stated version, truncate it
+		if (actualLength > expectedLength)
+			tableLengthInU32s = static_cast<uint8_t>(expectedLength / 4U);
+		// Otherwise fix the version number to match the one for the actual length
+		else
+		{
+			// 24 uint32_t's -> v1.8
+			if (actualLength == 96U)
+			{
+				versionMajor = 1U;
+				versionMinor = 8U;
+			}
+			// 21 uint32_t's -> v1.7
+			else if (actualLength == 84U)
+			{
+				versionMajor = 1U;
+				versionMinor = 7U;
+			}
+			// 16 uint32_t's -> v1.6 (assume the newer standard)
+			else if (actualLength == 64U)
+			{
+				versionMajor = 1U;
+				versionMinor = 6U;
+			}
+			// 9 uint32_t's -> v1.4 (assume the newer standard)
+			else if (actualLength == 36U)
+			{
+				versionMajor = 1U;
+				versionMinor = 4U;
+			}
+			else
+				console.error("This should not be possible, please check sfdp.cxx for sanity"sv);
+			console.info("Adjusted version is "sv, versionMajor, '.', versionMinor);
 		}
 	}
 } // namespace bmpflash::sfdp

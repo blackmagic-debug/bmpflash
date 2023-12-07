@@ -63,7 +63,8 @@ namespace bmpflash::sfdp
 
 		[[nodiscard]] uint16_t jedecParameterID() const noexcept
 			{ return static_cast<uint16_t>((jedecParameterIDHigh << 8U) | jedecParameterIDLow); }
-		[[nodiscard]] size_t tableLength() const noexcept { return static_cast<size_t>(tableLengthInU32s) * 4U; }
+		[[nodiscard]] size_t tableLength() const noexcept { return static_cast<size_t>(tableLengthInU32s * 4U); }
+		void validate() noexcept;
 	};
 
 	struct memoryDensity_t
