@@ -189,4 +189,41 @@ namespace bmpflash::sfdp
 		}
 		return std::nullopt;
 	}
+
+	size_t parameterTableHeader_t::lengthForVersion() const noexcept
+	{
+		if (versionMajor < 1U)
+		{
+			console.warn("SFDP basic parameters table header version incorrect, got v"sv, versionMajor, '.',
+				versionMinor, " which is less than minimum allowable version of v1.0"sv);
+			// If the version number is impossible, just return the table length - there's nothing else we can do.
+			return tableLength();
+		}
+		// Turn the version number into a uint16_t with the upper byte being the major and the lower being the minor
+		const auto version{static_cast<uint16_t>((versionMajor << 8U) | versionMinor)};
+		// Now switch on the valid ones we know about
+		switch (version)
+		{
+			// v1.0 through v1.4 from the original JESD216
+			case 0x0100U:
+			case 0x0101U:
+			case 0x0102U:
+			case 0x0103U:
+			case 0x0104U:
+				return 36U; // 9 uint32_t's
+			// v1.5 (JESD216A), v1.6 (JESD216B)
+			case 0x0105U:
+			case 0x0106U:
+				return 64U; // 16 uint32_t's
+			// v1.7 (JESD216C, JESD216D, JESD216E)
+			case 0x0107U:
+				return 84U; // 21 uint32_t's
+			// v1.8 (JESD216F)
+			case 0x0108U:
+				return 96U; // 24 uint32_t's
+			default:
+				console.warn("Unknown SFDP version v"sv, versionMajor, '.', versionMinor, ", assuming valid size"sv);
+				return tableLength();
+		}
+	}
 } // namespace bmpflash::sfdp

@@ -50,6 +50,10 @@ namespace bmpflash::sfdp
 
 	struct parameterTableHeader_t
 	{
+	private:
+		[[nodiscard]] size_t lengthForVersion() const noexcept;
+
+	public:
 		uint8_t jedecParameterIDLow{};
 		uint8_t versionMinor{};
 		uint8_t versionMajor{};
