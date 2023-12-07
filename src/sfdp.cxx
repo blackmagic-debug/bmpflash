@@ -238,12 +238,18 @@ namespace bmpflash::sfdp
 		if (actualLength == expectedLength)
 			return;
 
+		console.warn("Found mismatched basic parameters table length, got "sv, actualLength, ", expected "sv,
+			expectedLength);
 		// If the table is longer than it should be for the stated version, truncate it
 		if (actualLength > expectedLength)
+		{
+			console.warn("Adjusting table length to correct"sv);
 			tableLengthInU32s = static_cast<uint8_t>(expectedLength / 4U);
+		}
 		// Otherwise fix the version number to match the one for the actual length
 		else
 		{
+			console.warn("Adjusting table version number to correct"sv);
 			// 24 uint32_t's -> v1.8
 			if (actualLength == 96U)
 			{
