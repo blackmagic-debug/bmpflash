@@ -152,17 +152,24 @@ serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice) : device{usbD
 	// Validate the endpoint IDs and claim the interface, then, having claimed the interface
 	// ask it to become active by sending a SET_CONTROL_LINE_STATE control request via
 	// the associated CDC control interface}
-	if (!txEndpoint || !rxEndpoint || !device.claimInterface(ctrlInterfaceNumber) || !device.claimInterface(dataInterfaceNumber) ||
+	if (!txEndpoint || !rxEndpoint || !device.claimInterface(ctrlInterfaceNumber) ||
+		!device.claimInterface(dataInterfaceNumber) ||
 		!device.writeControl({recipient_t::interface, request_t::typeClass}, uint8_t(cdcRequest_t::setControlLineState),
 			controlLines_t::dtrPresent | controlLines_t::rtsActivate, ctrlInterfaceNumber, nullptr))
 	{
-		// If either of them are bad, we couldn't claim the interface, or we couldn't send the control request, invalidate both.
+		// If either of them are bad, we couldn't claim the interface, or we couldn't send the
+		// control request, invalidate both.
 		txEndpoint = 0U;
 		rxEndpoint = 0U;
 	}
-	// Having adjusted the line state, try to do a read of the serial state notification which will be sat in the buffer
-	std::array<uint8_t, 10U> serialState{};
-	static_cast<void>(device.readBulk(rxEndpoint, serialState.data(), static_cast<int32_t>(serialState.size()), 100ms));
+	else
+	{
+		// Having adjusted the line state, try to do a read of the serial state notification
+		// which could be sat in the buffer
+		std::array<uint8_t, 10U> serialState{};
+		static_cast<void>(device.readBulk(rxEndpoint, serialState.data(),
+			static_cast<int32_t>(serialState.size()), 100ms));
+	}
 }
 
 serialInterface_t::~serialInterface_t() noexcept
