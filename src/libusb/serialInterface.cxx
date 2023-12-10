@@ -137,6 +137,11 @@ serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice) : device{usbD
 		for (const auto epIndex : substrate::indexSequence_t{2U})
 		{
 			const auto endpoint{firstAltMode.endpoint(epIndex)};
+			if (!endpoint.valid())
+			{
+				console.error("Probe interface missing a required endpoint (index "sv, epIndex, ')');
+				return;
+			}
 			if (endpoint.direction() == endpointDir_t::controllerOut)
 				txEndpoint = endpoint.address();
 			else
