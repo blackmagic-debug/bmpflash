@@ -67,6 +67,29 @@ namespace bmpflash::sfdp
 		void validate() noexcept;
 	};
 
+	struct fastReadAndAddressing_t
+	{
+	private:
+		uint8_t data{};
+
+	public:
+		[[nodiscard]] bool supportsFastRead_1_1_2() const noexcept { return data & 0x01U; }
+		[[nodiscard]] bool supportsFastRead_1_1_4() const noexcept { return data & 0x40U; }
+		[[nodiscard]] bool supportsFastRead_1_2_2() const noexcept { return data & 0x10U; }
+		[[nodiscard]] bool supportsFastRead_1_4_4() const noexcept { return data & 0x20U; }
+
+		[[nodiscard]] uint8_t addressBytes() const
+		{
+			const auto bytes{static_cast<uint8_t>(data & 0x06U)};
+			if (bytes == 0x00U)
+				return 3U;
+			if (bytes == 0x04U)
+				return 4U;
+			// 0x02U is 3-or-4-bytes mode but we can't necessarily determine which the chip is in
+			throw std::range_error{"Address bytes value invalid or indeterminate"};
+		}
+	};
+
 	struct memoryDensity_t
 	{
 		std::array<uint8_t, 4> data{};
@@ -147,7 +170,7 @@ END_PACKED()
 	{
 		uint8_t value1{};
 		uint8_t sectorEraseOpcode{};
-		uint8_t value2{};
+		fastReadAndAddressing_t fastReadAndAddressing{};
 		uint8_t reserved1{};
 		memoryDensity_t flashMemoryDensity{};
 		timingsAndOpcode_t fastQuadIO{};
