@@ -114,10 +114,15 @@ END_PACKED()
 		uint8_t programmingTimingRatioAndPageSize{};
 		std::array<uint8_t, 3> eraseTimings;
 
-		[[nodiscard]] uint64_t pageSize() const noexcept
+		[[nodiscard]] uint32_t pageSize() const noexcept
 		{
+			// Extract the exponent, which by definition must be a value between 0 and 15
 			const auto pageSizeExponent{static_cast<uint8_t>(programmingTimingRatioAndPageSize >> 4U)};
-			return UINT64_C(1) << pageSizeExponent;
+			// If for some reason this is 0, return the default page size (256) instead
+			if (!pageSizeExponent)
+				return 256U;
+			// Exponentiate to get the real page size (0-64KiB)
+			return 1U << pageSizeExponent;
 		}
 	};
 
