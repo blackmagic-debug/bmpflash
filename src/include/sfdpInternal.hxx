@@ -67,6 +67,28 @@ namespace bmpflash::sfdp
 		void validate() noexcept;
 	};
 
+	struct writeAndEraseGranularity_t
+	{
+	private:
+		uint8_t data{};
+
+	public:
+		[[nodiscard]] std::optional<uint8_t> volatileStatusWriteEnable() const noexcept
+		{
+			// Check if the status register requires any write enables
+			if (!(data & 0x08U))
+				return std::nullopt;
+			// Otherwise check if the device requires 0x06 as write enable
+			if (data & 0x10U)
+				return 0x06U;
+			// If not, then it's 0x50 as write enable
+			return 0x50U;
+		}
+
+		[[nodiscard]] bool supports4KiBErase() const noexcept
+			{ return (data & 0x03U) == 0x01U; }
+	};
+
 	struct fastReadAndAddressing_t
 	{
 	private:
@@ -168,7 +190,7 @@ END_PACKED()
 
 	struct basicParameterTable_t
 	{
-		uint8_t value1{};
+		writeAndEraseGranularity_t writeAndEraseGranularity{};
 		uint8_t sectorEraseOpcode{};
 		fastReadAndAddressing_t fastReadAndAddressing{};
 		uint8_t reserved1{};
