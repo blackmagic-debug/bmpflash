@@ -130,14 +130,19 @@ private:
 	[[nodiscard]] bool bulkTransfer(const uint8_t endpoint, const void *const bufferPtr,
 		const int32_t bufferLen, const milliseconds_t timeout) const noexcept
 	{
+		// libusb versions prior to v1.0.21 cannot take `nullptr` as their `transfer` parameter.
+		// FreeBSD's custom libusb implements API version v1.0.13 at time of writing, so we cannot make
+		// use of this ability to ignore the transfer byte count result.
+		int bytesTransferred{};
 		// The const-cast here is required becasue libusb is not const-correct. It is UB, but we cannot avoid it.
 		const auto result
 		{
 			libusb_bulk_transfer(device, endpoint,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, nullptr,
+				const_cast<uint8_t *>(static_cast<const uint8_t *>(bufferPtr)), bufferLen, &bytesTransferred,
 				static_cast<uint32_t>(timeout.count()))
 		};
+		// Check for outright failures and report them
 		if (result && result != LIBUSB_ERROR_TIMEOUT)
 		{
 			const auto endpointNumber{uint8_t(endpoint & 0x7FU)};
@@ -147,6 +152,9 @@ private:
 				direction == endpointDir_t::controllerIn ? "IN"sv : "OUT"sv,
 				", reason: "sv, libusb_error_name(result));
 		}
+		// Check if we moved less data than we expected, and warn if in debug mode if we did
+		if (result == 0 && bytesTransferred < bufferLen && console.showDebug())
+			console.warn("Bulk transfer received "sv, bytesTransferred, " instead of the expected "sv, bufferLen);
 		return !result;
 	}
 
