@@ -81,6 +81,10 @@ namespace bmpflash::spiFlash
 		pageRead = command(opcodeMode_t::with3BAddress, dataMode_t::dataIn, 0U, opcode_t::pageRead),
 	};
 
+	// NB: This technically invokes UB, however there's not really a better way to do this, so.
+	constexpr inline command_t operator |(const command_t &cmd, const uint8_t &opcode) noexcept
+		{ return static_cast<command_t>(uint16_t(cmd) | opcode); }
+
 	constexpr inline uint8_t spiStatusBusy{1};
 	constexpr inline uint8_t spiStatusWriteEnabled{2};
 
