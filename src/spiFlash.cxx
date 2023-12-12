@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#include <cstdint>
 #include <string_view>
 #include <substrate/console>
 #include <substrate/index_sequence>
@@ -33,7 +34,7 @@ namespace bmpflash::spiFlash
 		console.debug("Erasing sector at 0x"sv, asHex_t<6, '0'>{address});
 		// Start by erasing the block
 		if (!probe.runCommand(spiFlashCommand_t::writeEnable, 0U) ||
-			!probe.runCommand(spiFlashCommand_t::sectorErase, static_cast<uint32_t>(address)) ||
+			!probe.runCommand(spiFlashCommand_t::sectorErase | sectorEraseOpcode_, static_cast<uint32_t>(address)) ||
 			!waitFlashIdle(probe))
 		{
 			console.error("Failed to prepare SPI Flash block for writing"sv);
