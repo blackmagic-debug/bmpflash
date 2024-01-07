@@ -60,14 +60,7 @@ int main(const int argCount, const char *const *const argList)
 	console.showDebug(verbosity & 1U);
 
 	// Handle the version and help options first
-	const auto *const version{args["version"sv]};
-	const auto *const help{args["help"sv]};
-	if (version && help)
-	{
-		console.error("Can only specify one of --help and --version, not both."sv);
-		return 1;
-	}
-	if (version)
+	if (args["version"sv])
 	{
 		bmpflash::displayVersion();
 		const auto *const libusbVersion{libusb_get_version()};
@@ -76,7 +69,7 @@ int main(const int argCount, const char *const *const argList)
 		return 0;
 	}
 	// Display the help if requested or there were no command line options given
-	if (help || args.count() == 0U)
+	if (args["help"sv] || args.count() == 0U)
 	{
 		bmpflash::programOptions.displayHelp(args);
 		return 0;
