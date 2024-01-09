@@ -10,6 +10,7 @@
 #include <substrate/console>
 #include <substrate/units>
 #include "actions.hxx"
+#include "options.hxx"
 #include "flashVendors.hxx"
 #include "sfdp.hxx"
 #include "provisionELF.hxx"
@@ -181,6 +182,12 @@ namespace bmpflash
 
 	bool displaySFDP(const usbDevice_t &device, const arguments_t &sfdpArguments)
 	{
+		// Check if help was asked for and handle that if it was
+		if (sfdpArguments["help"sv])
+		{
+			sfdpOptions.displayHelp();
+			return true;
+		}
 		// Try to begin communications with the BMP
 		auto probe{beginComms(device, std::get<flag_t>(*sfdpArguments["bus"sv]))};
 		// If we got good comms, then try and identify the Flash
@@ -194,6 +201,12 @@ namespace bmpflash
 
 	bool provision(const usbDevice_t &device, const arguments_t &provisionArguments)
 	{
+		// Check if help was asked for and handle that if it was
+		if (provisionArguments["help"sv])
+		{
+			provisioningOptions.displayHelp();
+			return true;
+		}
 		// Try to begin communications with the BMP
 		auto probe{beginComms(device, spiBus_t::internal)};
 		// If we got good comms, then try and identify the Flash
@@ -222,6 +235,12 @@ namespace bmpflash
 
 	bool read(const usbDevice_t &device, const arguments_t &readArguments)
 	{
+		// Check if help was asked for and handle that if it was
+		if (readArguments["help"sv])
+		{
+			generalFlashOptions.displayHelp();
+			return true;
+		}
 		// Try to begin communications with the BMP
 		auto probe{beginComms(device, std::get<flag_t>(*readArguments["bus"sv]))};
 		// If we got good comms, then try and identify the Flash
@@ -269,6 +288,12 @@ namespace bmpflash
 
 	bool write(const usbDevice_t &device, const arguments_t &writeArguments)
 	{
+		// Check if help was asked for and handle that if it was
+		if (writeArguments["help"sv])
+		{
+			generalFlashOptions.displayHelp();
+			return true;
+		}
 		// Try to begin communications with the BMP
 		auto probe{beginComms(device, std::get<flag_t>(*writeArguments["bus"sv]))};
 		// If we got good comms, then try and identify the Flash

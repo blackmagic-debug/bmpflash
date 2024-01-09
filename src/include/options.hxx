@@ -111,7 +111,8 @@ namespace bmpflash
 	{
 		options
 		(
-			option_t{optionFlagPair_t{"-h"sv, "--help"sv}, "Display this help message and exit"sv}.exclusive(),
+			option_t{optionFlagPair_t{"-h"sv, "--help"sv}, "Display this help message and exit"sv}
+				.exclusive().global(),
 			option_t{"--version"sv, "Display the program version information and exit"sv}.exclusive(),
 			option_t{optionFlagPair_t{"-v"sv, "--verbosity"sv}, "Set the program output verbosity"sv}
 				.takesParameter(optionValueType_t::unsignedInt).valueRange(0U, 1U),
