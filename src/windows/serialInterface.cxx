@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: BSD-3-Clause
-// SPDX-FileCopyrightText: 2023 1BitSquared <info@1bitsquared.com>
+// SPDX-FileCopyrightText: 2023a-2024 1BitSquared <info@1bitsquared.com>
 // SPDX-FileContributor: Written by Rachel Mant <git@dragonmux.network>
+#include <cstdint>
+#include <cstddef>
+#include <array>
+#include <string>
+#include <string_view>
 #include <fmt/format.h>
 #include <substrate/console>
 #include "windows/serialInterface.hxx"
+#include "usbDevice.hxx"
 #include "bmp.hxx"
 
+using namespace std::literals::string_view_literals;
 using substrate::console;
 
 constexpr static auto uncDeviceSuffix{"\\\\.\\"sv};
@@ -65,6 +72,7 @@ public:
 			}()
 		} { }
 
+	// NOLINTNEXTLINE(modernize-use-equals-default)
 	~hklmRegistryKey_t() noexcept
 	{
 		// Close the key if we're destructing a valid object that holds a handle to one
@@ -75,6 +83,7 @@ public:
 	[[nodiscard]] bool valid() const noexcept { return handle != INVALID_HANDLE_VALUE; }
 
 	// Reads the string key `keyName` from the registry
+	// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 	[[nodiscard]] std::string readStringKey(std::string_view keyName) const
 	{
 		DWORD valueLength{0U};
@@ -213,12 +222,14 @@ serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice) : device
 	static_cast<void>(ReadFile(device, serialState.data(), serialState.size(), nullptr, nullptr));
 }
 
+// NOLINTNEXTLINE(modernize-use-equals-default)
 serialInterface_t::~serialInterface_t() noexcept
 {
 	if (device != INVALID_HANDLE_VALUE)
 		CloseHandle(device);
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 void serialInterface_t::handleDeviceError(const std::string_view operation) noexcept
 {
 	// Get the last error that occured
@@ -243,6 +254,7 @@ void serialInterface_t::swap(serialInterface_t &interface) noexcept
 	std::swap(device, interface.device);
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 void serialInterface_t::writePacket(const std::string_view &packet) const
 {
 	console.debug("Remote write: "sv, packet);
@@ -257,6 +269,7 @@ void serialInterface_t::writePacket(const std::string_view &packet) const
 	}
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 std::string serialInterface_t::readPacket() const
 {
 	std::array<char, bmp_t::maxPacketSize + 1U> packet{};

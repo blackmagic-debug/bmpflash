@@ -4,6 +4,8 @@
 #ifndef SERIAL_INTERFACE_HXX
 #define SERIAL_INTERFACE_HXX
 
+#include <cstdint>
+#include <cstddef>
 #include <windows.h>
 #include <string_view>
 #include "usbDevice.hxx"
@@ -13,7 +15,7 @@ struct serialInterface_t
 private:
 	HANDLE device{INVALID_HANDLE_VALUE};
 
-	void handleDeviceError(const std::string_view operation) noexcept;
+	void handleDeviceError(std::string_view operation) noexcept;
 
 public:
 	serialInterface_t() noexcept = default;
