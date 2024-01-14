@@ -80,9 +80,9 @@ namespace bmpflash::sfdp
 				return std::nullopt;
 			// Otherwise check if the device requires 0x06 as write enable
 			if (data & 0x10U)
-				return 0x06U;
+				return static_cast<uint8_t>(0x06U);
 			// If not, then it's 0x50 as write enable
-			return 0x50U;
+			return static_cast<uint8_t>(0x50U);
 		}
 
 		[[nodiscard]] bool supports4KiBErase() const noexcept
