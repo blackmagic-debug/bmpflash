@@ -8,6 +8,7 @@
 #include <string_view>
 #include <fmt/format.h>
 #include <substrate/console>
+#include <substrate/index_sequence>
 #include "windows/serialInterface.hxx"
 #include "usbDevice.hxx"
 #include "bmp.hxx"
@@ -16,6 +17,10 @@ using namespace std::literals::string_view_literals;
 using substrate::console;
 
 constexpr static auto uncDeviceSuffix{"\\\\.\\"sv};
+
+static std::array<char, 4096U> readBuffer{};
+static size_t readBufferFullness{0U};
+static size_t readBufferOffset{0U};
 
 [[nodiscard]] std::string serialForDevice(const usbDevice_t &device)
 {
@@ -270,29 +275,45 @@ void serialInterface_t::writePacket(const std::string_view &packet) const
 }
 
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+void serialInterface_t::refillBuffer() const
+{
+	DWORD bytesReceived = 0;
+	// Try to fill the read buffer, and if that fails, bail
+	if (!ReadFile(device, readBuffer.data(), static_cast<DWORD>(readBuffer.size()), &bytesReceived, nullptr))
+	{
+		console.error("Read from device failed ("sv, GetLastError(), ")"sv);
+		throw bmpCommsError_t{};
+	}
+	// We now have more data, so update the read buffer counters
+	readBufferFullness = bytesReceived;
+	readBufferOffset = 0U;
+}
+
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+[[gnu::noinline]] char serialInterface_t::nextByte() const
+{
+	// Check if we need more data or should use what's in the buffer already
+	while (readBufferOffset == readBufferFullness)
+		refillBuffer();
+	return readBuffer[readBufferOffset++];
+}
+
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 std::string serialInterface_t::readPacket() const
 {
-	std::array<char, bmp_t::maxPacketSize + 1U> packet{};
-	DWORD read = 0;
-	size_t length{0};
-	for (; length < packet.size(); length += read)
+	std::array<char, bmp_t::maxPacketSize> packet{};
+	size_t length{0U};
+	for (; length < packet.size(); ++length)
 	{
-		// Due to the protocol's structure, best we can do is reading a single byte at a time.
-		if (!ReadFile(device, packet.data() + length, 1U, &read, nullptr))
-		{
-			console.error("Read from device failed ("sv, GetLastError(), "), read "sv, length, " bytes");
-			throw bmpCommsError_t{};
-		}
-		if (read && packet[length] == '#')
+		const auto byte{nextByte()};
+		if (byte == '#')
 			break;
+		packet[length] = byte;
 	}
 
-	// Adjust the length to remove the beginning '&' (the ending '#' is already taken care of in the read loop)
-	--length;
-	// Make a new std::string of an appropriate length
-	std::string result(length + 1U, '\0');
-	// And copy the result string in, returning it
-	std::memcpy(result.data(), packet.data() + 1U, length);
+	// Make a new std::string of an appropriate length, copying the data in to return it
+	// Skip the first byte to remove the beginning '&' (the ending '#' is already taken care of in the read loop)
+	std::string result{packet.data() + 1U, length};
 	console.debug("Remote read: "sv, result);
 	return result;
 }
