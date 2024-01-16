@@ -6,9 +6,10 @@
 #include <array>
 #include <string>
 #include <string_view>
+#include <algorithm>
+#include <memory>
 #include <fmt/format.h>
 #include <substrate/console>
-#include <substrate/index_sequence>
 #include "windows/serialInterface.hxx"
 #include "usbDevice.hxx"
 #include "bmp.hxx"
@@ -293,25 +294,33 @@ void serialInterface_t::refillBuffer() const
 }
 
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-[[gnu::noinline]] char serialInterface_t::nextByte() const
-{
-	// Check if we need more data or should use what's in the buffer already
-	while (readBufferOffset == readBufferFullness)
-		refillBuffer();
-	return readBuffer[readBufferOffset++];
-}
-
-// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 std::string serialInterface_t::readPacket() const
 {
 	std::array<char, bmp_t::maxPacketSize> packet{};
 	size_t length{0U};
-	for (; length < packet.size(); ++length)
+	// Try gathering a '#' terminated response
+	while (length < packet.size())
 	{
-		const auto byte{nextByte()};
-		if (byte == '#')
+		// Check if we need more data or should use what's in the buffer already
+		while (readBufferOffset == readBufferFullness)
+			refillBuffer();
+
+		const auto *const bufferBegin{readBuffer.data() + readBufferOffset};
+		const auto *const bufferEnd{readBuffer.data() + readBufferFullness};
+
+		// Look for an end of message marker
+		const auto *const eomMarker{std::find(bufferBegin, bufferEnd, static_cast<uint8_t>('#'))};
+		// We now either have a remote end of message marker, or need all the data from the buffer
+		std::uninitialized_copy(bufferBegin, eomMarker, packet.data() + length);
+		const auto responseLength{static_cast<size_t>(std::distance(bufferBegin, eomMarker))};
+		readBufferOffset += responseLength;
+		length += responseLength;
+		// If it's a remote end of message marker, break out the loop
+		if (responseLength != readBufferFullness)
+		{
+			++readBufferOffset;
 			break;
-		packet[length] = byte;
+		}
 	}
 
 	// Make a new std::string of an appropriate length, copying the data in to return it

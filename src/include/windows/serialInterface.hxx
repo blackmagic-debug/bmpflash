@@ -17,7 +17,6 @@ private:
 
 	void handleDeviceError(std::string_view operation) noexcept;
 	void refillBuffer() const;
-	[[nodiscard]] char nextByte() const;
 
 public:
 	serialInterface_t() noexcept = default;
