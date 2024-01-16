@@ -209,11 +209,10 @@ std::string serialInterface_t::readPacket() const
 	if (!device.readBulk(rxEndpoint, packet.data(), bmp_t::maxPacketSize) || packet[0] != '&')
 		throw bmpCommsError_t{};
 	// Figure out how long that is (minus the beginning '&' and ending '#')
-	const auto length{std::strlen(packet.data() + 1U) - 1U};
-	// Make a new std::string of an appropriate length
-	std::string result(length + 1U, '\0');
-	// And copy the result string in, returning it
-	std::memcpy(result.data(), packet.data() + 1U, length);
+	const auto length{std::strlen(packet.data() + 1U)};
+	packet[length] = '\0';
+	// Make a new std::string of an appropriate length, copying the data in to return it
+	std::string result{packet.data() + 1U, length};
 	console.debug("Remote read: "sv, result);
 	return result;
 }
