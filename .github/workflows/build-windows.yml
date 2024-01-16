@@ -169,7 +169,7 @@ jobs:
         # Codecov no longer parses gcov files automatically
         run: |
           rm -rf build
-          meson setup build --prefix=$HOME/.local -Db_coverage=true --buildtype=debug
+          meson setup build --prefix=$HOME/.local -Db_coverage=true -Db_lto=false --buildtype=debug
           meson compile -C build
           meson test -C build
           ninja -C build coverage-xml
