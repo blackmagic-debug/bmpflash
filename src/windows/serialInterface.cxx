@@ -281,6 +281,12 @@ void serialInterface_t::writePacket(const std::string_view &packet) const
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 void serialInterface_t::refillBuffer() const
 {
+	// Try to wait for up to 100ms for data to become available
+	if (WaitForSingleObject(device, 100) != WAIT_OBJECT_0)
+	{
+		console.error("Waiting for data from device failed ("sv, GetLastError(), ")"sv);
+		throw bmpCommsError_t{};
+	}
 	DWORD bytesReceived = 0;
 	// Try to fill the read buffer, and if that fails, bail
 	if (!ReadFile(device, readBuffer.data(), static_cast<DWORD>(readBuffer.size()), &bytesReceived, nullptr))
@@ -302,7 +308,7 @@ std::string serialInterface_t::readPacket() const
 	while (length < packet.size())
 	{
 		// Check if we need more data or should use what's in the buffer already
-		while (readBufferOffset == readBufferFullness)
+		if (readBufferOffset == readBufferFullness)
 			refillBuffer();
 
 		const auto *const bufferBegin{readBuffer.data() + readBufferOffset};
