@@ -222,9 +222,8 @@ serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice) : device
 	if (!SetCommTimeouts(device, &timeouts))
 		handleDeviceError("set communications timeouts for device"sv);
 
-	// Having adjusted the line state, try to do a read of the serial state notification which will be sat in the buffer
-	std::array<uint8_t, 10U> serialState{};
-	static_cast<void>(ReadFile(device, serialState.data(), serialState.size(), nullptr, nullptr));
+	// Having adjusted the line state, discard anything sat in the receive buffer
+	PurgeComm(device, PURGE_RXCLEAR);
 }
 
 // NOLINTNEXTLINE(modernize-use-equals-default)
