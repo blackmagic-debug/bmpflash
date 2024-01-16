@@ -170,13 +170,13 @@ serialInterface_t::serialInterface_t(const usbDevice_t &usbDevice) : device
 			// Try and open the node so we can start communications with the the device
 			return CreateFile
 			(
-				portName.c_str(),                               // UNC path to the target node
-				GENERIC_READ | GENERIC_WRITE,                   // Standard file permissions
-				0,                                              // With no sharing
-				nullptr,                                        // Default security attributes
-				OPEN_EXISTING,                                  // Only succeed if the node already exists
-				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_NO_BUFFERING, // Normal but unbuffered I/O
-				nullptr                                         // No template file
+				portName.c_str(),                                // UNC path to the target node
+				GENERIC_READ | GENERIC_WRITE,                    // Standard file permissions
+				0,                                               // With no sharing
+				nullptr,                                         // Default security attributes
+				OPEN_EXISTING,                                   // Only succeed if the node already exists
+				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, // Normal I/O w/ write-through
+				nullptr                                          // No template file
 			);
 		}()
 	}
