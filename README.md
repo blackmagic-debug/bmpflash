@@ -57,10 +57,10 @@ Actions:
 	write                Write the contents of the file specified into a Flash chip
 ```
 
-* bmpflash info will give you an overview of what the tool can see
-* bmpflash sfdp -b <ext|int> (where <ext|int> intends to convey you need to pick one of "ext" or "int" for the external and internal SPI busses) then gives you the Serial Flash Discoverable Parameters (SFDP) data for any chip found on the bus
-* bmpflash read and bmpflash write then additionally take a file name after which should contain (or will be written with, in the case of read) the raw SPI Flash data you want to poke with
-* bmpflash provision is for writing a BMP v2.3+'s internal SPI Flash with provisioning data for the upcoming auto-programming/one-touch-programming support
+* `bmpflash info` will give you an overview of what hardware devices the tool can see
+* `bmpflash sfdp -b <ext|int>` (where <ext|int> intends to convey you need to pick one of "ext" or "int" for the external and internal SPI busses) then gives you the Serial Flash Discoverable Parameters (SFDP) data for any chip found on the bus
+* `bmpflash read` and `bmpflash write` then additionally take a file name after which should contain (or will be written with, in the case of read) the raw SPI Flash data you want to poke with
+* `bmpflash provision` is for writing a BMP v2.3+'s internal SPI Flash with provisioning data for the upcoming auto-programming/one-touch-programming support
 
 ## Hardware connection
 
