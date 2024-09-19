@@ -20,10 +20,9 @@ and then configure the build depending on what you want.
 meson setup build
 ```
 
-#### In case of errors during the setup
-
-Some newer versions of meson have changed the syntax of the build script and you may need to modify the script.
-Find the line in the file `meson.build` with `'b_debug=if-release'` and change it to `'debug=false'` and try rerunning the setup command.
+> [!NOTE]
+> Some newer versions of meson have changed the syntax of the build script which will cause errors during this step. You may need to modify the script
+as follows: Find the line in the file `meson.build` with `'b_debug=if-release'` and change it to `'debug=false'` and try rerunning the setup command.
 
 You now should have a `build` directory from where you can build the app, this is also where your executable will appear.
 
