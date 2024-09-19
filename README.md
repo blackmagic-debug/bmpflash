@@ -2,7 +2,8 @@
 
 A utility for accessing SPI flash devices using the Black Magic Debug Probe.
 
-This project is currently still in early stages and under heavy development.
+> [!NOTE]
+> This project is currently still in early stages and under heavy development.
 
 ## Building from source
 
