@@ -9,7 +9,7 @@ project(
 		'warning_level=3',
 		'buildtype=release',
 		'strip=true',
-		'b_debug=if-release',
+		'b_ndebug=if-release',
 		'b_lto=true',
  		# libusb needs to pass functions to/from C++ land
 		'cpp_eh=s',
