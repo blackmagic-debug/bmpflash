@@ -25,13 +25,21 @@ namespace bmpflash
 		return std::nullopt;
 	}
 
-	constexpr static auto serialOption
+	constexpr static auto baseOptions
 	{
-		option_t
-		{
-			optionFlagPair_t{"-s"sv, "--serial"sv},
-			"Use the BMP with the given, possibly partial, matching serial number"sv
-		}.takesParameter(optionValueType_t::string)
+		options
+		(
+			option_t
+			{
+				optionFlagPair_t{"-h"sv, "--help"sv},
+				"Display this help message and exit"sv
+			}.exclusive(),
+			option_t
+			{
+				optionFlagPair_t{"-s"sv, "--serial"sv},
+				"Use the BMP with the given, possibly partial, matching serial number"sv
+			}.takesParameter(optionValueType_t::string)
+		)
 	};
 
 	constexpr static auto fileOption
@@ -43,13 +51,11 @@ namespace bmpflash
 		}.takesParameter(optionValueType_t::path).required()
 	};
 
-	constexpr static auto probeOptions{options(serialOption)};
-
 	constexpr static auto deviceOptions
 	{
 		options
 		(
-			serialOption,
+			baseOptions,
 			option_t
 			{
 				optionFlagPair_t{"-b"sv, "--bus"sv},
@@ -72,7 +78,7 @@ namespace bmpflash
 		)
 	};
 
-	constexpr static auto provisioningOptions{options(serialOption, fileOption)};
+	constexpr static auto provisioningOptions{options(baseOptions, fileOption)};
 	constexpr static auto generalFlashOptions{options(deviceOptions, fileOption)};
 
 	constexpr static auto actions
@@ -82,7 +88,7 @@ namespace bmpflash
 			{
 				"info"sv,
 				"Display information about attached Black Magic Probes"sv,
-				probeOptions,
+				baseOptions,
 			},
 			{
 				"sfdp"sv,
