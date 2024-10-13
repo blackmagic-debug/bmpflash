@@ -37,6 +37,20 @@ namespace bmpflash
 		console.writeln("This utility is licensed under BSD-3-Clause"sv);
 		console.writeln("Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv);
 	}
+
+	void displayActionHelp(const optionAlternation_t &action)
+	{
+		console.info("bmpflash - Black Magic Probe companion utility for SPI Flash provisioning and usage"sv);
+		console.writeln();
+		console.writeln("Usage:"sv);
+		console.writeln("\tbmpflash [options] "sv, action.displayName(), " [actionOptions]"sv);
+		console.writeln();
+		console.writeln("Action "sv, nullptr);
+		action.suboptions().displayHelp();
+		console.writeln();
+		console.writeln("This utility is licensed under BSD-3-Clause"sv);
+		console.writeln("Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv);
+	}
 }
 
 [[nodiscard]] auto findBMPs(const usbContext_t &context)
@@ -107,6 +121,18 @@ int main(const int argCount, const char *const *const argList)
 		return 1;
 	}
 	const auto &action{std::get<choice_t>(*actionArg)};
+
+	// Check if `-h`/`--help` was given for this action
+	if (action.arguments()["help"sv])
+	{
+		// It was, so find the right action option set and display its help
+		for (const auto &actionOptions : bmpflash::actions)
+		{
+			if (actionOptions.matches(action.value()))
+				bmpflash::displayActionHelp(actionOptions);
+		}
+		return 0;
+	}
 
 	// Get a libusb context to perform everything in
 	const usbContext_t context{};
