@@ -25,21 +25,13 @@ namespace bmpflash
 		return std::nullopt;
 	}
 
-	constexpr static auto baseOptions
+	constexpr static auto serialOption
 	{
-		options
-		(
-			option_t
-			{
-				optionFlagPair_t{"-h"sv, "--help"sv},
-				"Display this help message and exit"sv
-			}.exclusive(),
-			option_t
-			{
-				optionFlagPair_t{"-s"sv, "--serial"sv},
-				"Use the BMP with the given, possibly partial, matching serial number"sv
-			}.takesParameter(optionValueType_t::string)
-		)
+		option_t
+		{
+			optionFlagPair_t{"-s"sv, "--serial"sv},
+			"Use the BMP with the given, possibly partial, matching serial number"sv
+		}.takesParameter(optionValueType_t::string)
 	};
 
 	constexpr static auto fileOption
@@ -51,11 +43,13 @@ namespace bmpflash
 		}.takesParameter(optionValueType_t::path).required()
 	};
 
+	constexpr static auto probeOptions{options(serialOption)};
+
 	constexpr static auto deviceOptions
 	{
 		options
 		(
-			baseOptions,
+			serialOption,
 			option_t
 			{
 				optionFlagPair_t{"-b"sv, "--bus"sv},
@@ -78,7 +72,7 @@ namespace bmpflash
 		)
 	};
 
-	constexpr static auto provisioningOptions{options(baseOptions, fileOption)};
+	constexpr static auto provisioningOptions{options(probeOptions, fileOption)};
 	constexpr static auto generalFlashOptions{options(deviceOptions, fileOption)};
 
 	constexpr static auto actions
@@ -88,7 +82,7 @@ namespace bmpflash
 			{
 				"info"sv,
 				"Display information about attached Black Magic Probes"sv,
-				baseOptions,
+				probeOptions,
 			},
 			{
 				"sfdp"sv,
@@ -115,14 +109,25 @@ namespace bmpflash
 
 	constexpr static auto programOptions
 	{
-		options
-		(
-			option_t{optionFlagPair_t{"-h"sv, "--help"sv}, "Display this help message and exit"sv},
-			option_t{"--version"sv, "Display the program version information and exit"sv},
-			option_t{optionFlagPair_t{"-v"sv, "--verbosity"sv}, "Set the program output verbosity"sv}
-				.takesParameter(optionValueType_t::unsignedInt).valueRange(0U, 1U),
-			optionSet_t{"action"sv, actions}
-		)
+		optionsRoot_t
+		{
+			options
+			(
+				option_t{optionFlagPair_t{"-h"sv, "--help"sv}, "Display this help message and exit"sv}
+					.exclusive().global(),
+				option_t{"--version"sv, "Display the program version information and exit"sv}.exclusive(),
+				option_t{optionFlagPair_t{"-v"sv, "--verbosity"sv}, "Set the program output verbosity"sv}
+					.takesParameter(optionValueType_t::unsignedInt).valueRange(0U, 1U),
+				optionSet_t{"action"sv, actions}
+			)
+		}
+			.helpHeader("bmpflash - Black Magic Probe companion utility for SPI Flash provisioning and usage"sv)
+			.usage("bmpflash [options] {action} [actionOptions]"sv)
+			.helpFooter
+			(
+				"This utility is licensed under BSD-3-Clause\n"
+				"Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv
+			)
 	};
 } // namespace bmpflash
 

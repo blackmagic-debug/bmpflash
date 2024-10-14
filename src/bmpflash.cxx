@@ -23,36 +23,6 @@ using substrate::commandLine::parseArguments;
 arguments_t args{};
 uint64_t verbosity{0U};
 
-namespace bmpflash
-{
-	void displayHelp() noexcept
-	{
-		console.info("bmpflash - Black Magic Probe companion utility for SPI Flash provisioning and usage"sv);
-		console.writeln();
-		console.writeln("Usage:"sv);
-		console.writeln("\tbmpflash [options] {action} [actionOptions]"sv);
-		console.writeln();
-		programOptions.displayHelp();
-		console.writeln();
-		console.writeln("This utility is licensed under BSD-3-Clause"sv);
-		console.writeln("Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv);
-	}
-
-	void displayActionHelp(const optionAlternation_t &action)
-	{
-		console.info("bmpflash - Black Magic Probe companion utility for SPI Flash provisioning and usage"sv);
-		console.writeln();
-		console.writeln("Usage:"sv);
-		console.writeln("\tbmpflash [options] "sv, action.displayName(), " [actionOptions]"sv);
-		console.writeln();
-		console.writeln("Action "sv, nullptr);
-		action.suboptions().displayHelp();
-		console.writeln();
-		console.writeln("This utility is licensed under BSD-3-Clause"sv);
-		console.writeln("Please report bugs to https://github.com/blackmagic-debug/bmpflash/issues"sv);
-	}
-}
-
 [[nodiscard]] auto findBMPs(const usbContext_t &context)
 {
 	std::vector<usbDevice_t> devices{};
@@ -108,7 +78,7 @@ int main(const int argCount, const char *const *const argList)
 	// Display the help if requested or there were no command line options given
 	if (help || args.count() == 0U)
 	{
-		bmpflash::displayHelp();
+		bmpflash::programOptions.displayHelp(args);
 		return 0;
 	}
 
@@ -117,7 +87,7 @@ int main(const int argCount, const char *const *const argList)
 	if (!actionArg)
 	{
 		console.error("Action to perform must be specified"sv);
-		bmpflash::displayHelp();
+		bmpflash::programOptions.displayHelp(args);
 		return 1;
 	}
 	const auto &action{std::get<choice_t>(*actionArg)};
@@ -125,12 +95,8 @@ int main(const int argCount, const char *const *const argList)
 	// Check if `-h`/`--help` was given for this action
 	if (action.arguments()["help"sv])
 	{
-		// It was, so find the right action option set and display its help
-		for (const auto &actionOptions : bmpflash::actions)
-		{
-			if (actionOptions.matches(action.value()))
-				bmpflash::displayActionHelp(actionOptions);
-		}
+		// Display the appropriate help
+		bmpflash::programOptions.displayHelp(args);
 		return 0;
 	}
 
