@@ -25,6 +25,7 @@ jobs:
           - 'clang-15'
           - 'clang-16'
           - 'clang-17'
+          - 'clang-18'
           - 'gcc-9'
           - 'gcc-11'
           - 'gcc-12'
@@ -90,7 +91,7 @@ jobs:
         shell: bash
         run: sudo apt-get install libudev-dev
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
@@ -127,14 +128,14 @@ jobs:
           ninja -C build coverage-xml
       - name: Upload failure logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os.id }}-${{ matrix.compiler }}
           path: ${{ github.workspace }}/build/meson-logs/*
           retention-days: 5
       - name: Codecov
         if: success() && github.repository == 'blackmagic-debug/bmpflash' && matrix.compiler != 'clang-17'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           directory: ./build/meson-logs/
           files: coverage.xml
