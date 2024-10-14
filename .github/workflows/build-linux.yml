@@ -32,6 +32,14 @@ jobs:
           - 'gcc-11'
           - 'gcc-12'
           - 'gcc-13'
+        exclude:
+          # Exclude compilers that don't exist on the new LTS
+          - os: { id: ubuntu-24.04, name: noble }
+            compiler: 'clang-13'
+          - os: { id: ubuntu-24.04, name: noble }
+            compiler: 'clang-15'
+          - os: { id: ubuntu-24.04, name: noble }
+            compiler: 'clang-16'
       fail-fast: false
     env:
       BUILD_OPTS: ''
@@ -96,11 +104,15 @@ jobs:
         with:
           lfs: true
           submodules: true
-      - name: Setup Meson + Ninja + gcovr
+      - name: Upgrade pip + wheel
+        if: matrix.os.name == 'jammy'
         shell: bash
         run: |
           sudo python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install --user meson ninja gcovr
+      - name: Setup Meson + Ninja + gcovr
+        shell: bash
+        run: |
+          python3 -m pip install --break-system-packages --user meson ninja gcovr
         working-directory: ${{ runner.temp }}
       - name: Version tools
         shell: bash
