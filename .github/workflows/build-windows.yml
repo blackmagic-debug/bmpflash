@@ -43,7 +43,7 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: Install OpenCppCoverage
         if: github.repository == 'blackmagic-debug/bmpflash'
-        uses: crazy-max/ghaction-chocolatey@v2.1.0
+        uses: crazy-max/ghaction-chocolatey@v3
         with:
           args: install OpenCppCoverage
       - name: Setup OpenCppCoverage
@@ -51,7 +51,7 @@ jobs:
         run: |
           echo "C:/Program Files/OpenCppCoverage" >> $env:GITHUB_PATH
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
@@ -84,7 +84,7 @@ jobs:
           meson test -C build
       - name: Upload failure logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os }}-${{ matrix.arch }}
           path: |
@@ -93,7 +93,7 @@ jobs:
           retention-days: 5
       - name: Codecov
         if: success() && github.repository == 'blackmagic-debug/bmpflash'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -106,7 +106,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - windows-2019
+          - windows-2022
         sys:
           - mingw64
           - ucrt64
@@ -139,7 +139,7 @@ jobs:
         run: |
           echo "GCOV=llvm-cov gcov" >> $GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
@@ -175,14 +175,14 @@ jobs:
           ninja -C build coverage-xml
       - name: Upload failure logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os }}-${{ matrix.sys }}
           path: ${{ github.workspace }}/build/meson-logs/*
           retention-days: 5
       - name: Codecov
         if: success() && github.repository == 'blackmagic-debug/bmpflash'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           directory: ./build/meson-logs/
           files: coverage.xml
