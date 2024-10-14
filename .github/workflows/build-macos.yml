@@ -103,8 +103,6 @@ jobs:
         os:
           - macos-latest
         compiler:
-          - gcc@9
-          - gcc@10
           - gcc@11
           - gcc@12
           - gcc@13 # needs hardcoding for the GCOV replacement
