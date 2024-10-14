@@ -20,6 +20,7 @@ jobs:
       matrix:
         os:
           - { id: ubuntu-22.04, name: jammy }
+          - { id: ubuntu-24.04, name: noble }
         compiler:
           - 'clang-13'
           - 'clang-15'
@@ -27,6 +28,7 @@ jobs:
           - 'clang-17'
           - 'clang-18'
           - 'gcc-9'
+          - 'gcc-10'
           - 'gcc-11'
           - 'gcc-12'
           - 'gcc-13'
