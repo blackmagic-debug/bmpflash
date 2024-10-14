@@ -24,6 +24,7 @@ jobs:
         os:
           - macos-12
           - macos-13
+          - macos-14
         build_opts:
           - ''
         include:
