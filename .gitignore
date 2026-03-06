@@ -1,7 +1,0 @@
-/.vscode/*
-
-/deps/*
-!/deps/*.wrap
-!/deps/packagefiles/
-
-/build/
